@@ -18,7 +18,7 @@ export function RegisterPage() {
     setError("");
 
     if (!isSupabaseConfigured) {
-      setError("أضف مفاتيح Supabase في ملف .env.local أولًا.");
+      setError("أضف مفاتيح Supabase في ملف .env.local أولاً.");
       return;
     }
 
@@ -46,67 +46,73 @@ export function RegisterPage() {
       return;
     }
 
-    setMessage("تم إنشاء الحساب. إذا كان تأكيد البريد مفعلًا في Supabase، افتح رابط التأكيد قبل تسجيل الدخول.");
+    setMessage("تم إنشاء الحساب. إذا كان تأكيد البريد مفعلاً في Supabase، افتح رابط التأكيد قبل تسجيل الدخول.");
     setDisplayName("");
     setEmail("");
     setPassword("");
   }
 
   return (
-    <section className="form-panel">
-      <div className="page-heading">
-        <h1>تسجيل حساب</h1>
-        <p>أنشئ حسابًا لمشاهدة الفيديوهات والتفاعل معها.</p>
+    <section className="auth-layout">
+      <div className="auth-copy">
+        <span className="eyebrow">حساب جديد</span>
+        <h1>أنشئ حسابك للوصول إلى تجربة مشاهدة كاملة.</h1>
+        <p>بعد التسجيل يمكنك فتح الفيديوهات، إضافة التعليقات، وتسجيل الإعجاب بالمحتوى.</p>
       </div>
 
-      {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
-      {message ? <StatusMessage tone="success">{message}</StatusMessage> : null}
+      <div className="form-panel">
+        {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
+        {message ? <StatusMessage tone="success">{message}</StatusMessage> : null}
 
-      <form className="form-stack" onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="displayName">الاسم</label>
-          <input
-            id="displayName"
-            value={displayName}
-            onChange={(event) => setDisplayName(event.target.value)}
-            autoComplete="name"
-          />
-        </div>
+        <form className="form-stack" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="displayName">الاسم</label>
+            <input
+              id="displayName"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+              autoComplete="name"
+              placeholder="اسم العرض"
+            />
+          </div>
 
-        <div className="field">
-          <label htmlFor="email">البريد الإلكتروني</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="email">البريد الإلكتروني</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              placeholder="name@example.com"
+              required
+            />
+          </div>
 
-        <div className="field">
-          <label htmlFor="password">كلمة المرور</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="new-password"
-            required
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="password">كلمة المرور</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+              placeholder="6 أحرف أو أكثر"
+              required
+            />
+          </div>
 
-        <div className="form-actions">
-          <button className="button" type="submit" disabled={isSubmitting}>
-            <UserPlus size={17} aria-hidden="true" />
-            {isSubmitting ? "جار الإنشاء..." : "إنشاء الحساب"}
-          </button>
-          <Link className="button ghost" to="/login">
-            لدي حساب
-          </Link>
-        </div>
-      </form>
+          <div className="form-actions">
+            <button className="button" type="submit" disabled={isSubmitting}>
+              <UserPlus size={17} aria-hidden="true" />
+              {isSubmitting ? "جار إنشاء الحساب..." : "إنشاء الحساب"}
+            </button>
+            <Link className="button ghost" to="/login">
+              لدي حساب
+            </Link>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }

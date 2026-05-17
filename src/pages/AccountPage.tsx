@@ -1,3 +1,4 @@
+import { CalendarDays, Mail, Shield, UserCircle } from "lucide-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
@@ -42,30 +43,35 @@ export function AccountPage() {
   }
 
   return (
-    <section className="content-panel">
+    <section className="content-panel account-panel">
       <div className="page-heading">
+        <span className="eyebrow">الملف الشخصي</span>
         <h1>حساب المستخدم</h1>
-        <p>بيانات الحساب والصلاحية الحالية.</p>
+        <p>بيانات الحساب والصلاحية الحالية المرتبطة بجلسة Supabase.</p>
       </div>
 
       <div className="account-grid">
         <div className="metric">
+          <Mail size={18} aria-hidden="true" />
           <span>البريد الإلكتروني</span>
           <strong>{user.email}</strong>
         </div>
         <div className="metric">
+          <UserCircle size={18} aria-hidden="true" />
           <span>الاسم</span>
           <strong>{profile?.display_name || "غير محدد"}</strong>
         </div>
         <div className="metric">
+          <Shield size={18} aria-hidden="true" />
           <span>الصلاحية</span>
           <strong>{isAdmin ? "مدير" : "مستخدم"}</strong>
         </div>
         <div className="metric">
+          <CalendarDays size={18} aria-hidden="true" />
           <span>تاريخ إنشاء الحساب</span>
           <strong>{formatDate(profile?.created_at)}</strong>
         </div>
-        <div className="metric">
+        <div className="metric metric-wide">
           <span>معرف الحساب</span>
           <strong>{user.id}</strong>
         </div>

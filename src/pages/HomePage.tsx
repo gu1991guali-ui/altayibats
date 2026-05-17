@@ -1,5 +1,6 @@
-import { RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Lock, RefreshCw, ShieldCheck, Sparkles, UploadCloud } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { StatusMessage } from "@/components/StatusMessage";
 import { useAuth } from "@/components/AuthProvider";
 import { VideoCard } from "@/components/VideoCard";
@@ -45,11 +46,62 @@ export function HomePage() {
     }
   }, [authLoading, loadVideos]);
 
+  const stats = useMemo(
+    () => [
+      { label: "فيديو منشور", value: videos.length },
+      { label: "إعجاب", value: videos.reduce((total, video) => total + video.likes_count, 0) },
+      { label: "تعليق", value: videos.reduce((total, video) => total + video.comments_count, 0) }
+    ],
+    [videos]
+  );
+
   return (
-    <section>
-      <div className="page-heading">
-        <h1>أحدث الفيديوهات</h1>
-        <p>استعرض الفيديوهات المنشورة حديثًا. يتطلب تشغيل الفيديو والتفاعل تسجيل الدخول.</p>
+    <section className="home-layout">
+      <div className="hero-section">
+        <div className="hero-copy">
+          <span className="eyebrow">
+            <Sparkles size={16} aria-hidden="true" />
+            منصة عربية منظمة للفيديوهات
+          </span>
+          <h1>شاهد، أدر، وتفاعل مع محتوى الفيديو في تجربة واحدة.</h1>
+          <p>
+            واجهة RTL حديثة تعرض الفيديوهات الطويلة والقصيرة بوضوح، مع تسجيل دخول للتفاعل
+            ولوحة إدارة للرفع والتحرير والمتابعة.
+          </p>
+          <div className="hero-actions">
+            {user ? (
+              <Link className="button" to="/account">
+                <ShieldCheck size={17} aria-hidden="true" />
+                عرض الحساب
+              </Link>
+            ) : (
+              <Link className="button" to="/login">
+                <Lock size={17} aria-hidden="true" />
+                تسجيل الدخول
+              </Link>
+            )}
+            <button className="button secondary" type="button" onClick={loadVideos}>
+              <RefreshCw size={16} aria-hidden="true" />
+              تحديث القائمة
+            </button>
+          </div>
+        </div>
+
+        <div className="hero-panel" aria-label="ملخص المنصة">
+          <div className="hero-visual">
+            <div className="hero-play">
+              <UploadCloud size={26} aria-hidden="true" />
+            </div>
+          </div>
+          <div className="stat-grid">
+            {stats.map((item) => (
+              <div className="stat-card" key={item.label}>
+                <strong>{item.value}</strong>
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {!isSupabaseConfigured ? (
@@ -60,17 +112,17 @@ export function HomePage() {
 
       {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
 
-      <div className="form-actions" style={{ marginBottom: 18 }}>
-        <button className="button secondary button-small" type="button" onClick={loadVideos}>
-          <RefreshCw size={16} aria-hidden="true" />
-          تحديث
-        </button>
+      <div className="section-head">
+        <div>
+          <h2>أحدث الفيديوهات</h2>
+          <p>المحتوى المنشور يظهر هنا حسب الأحدث أولاً.</p>
+        </div>
       </div>
 
       {isLoading ? <div className="empty-state">جار تحميل الفيديوهات...</div> : null}
 
       {!isLoading && videos.length === 0 ? (
-        <div className="empty-state">لا توجد فيديوهات منشورة حاليًا.</div>
+        <div className="empty-state">لا توجد فيديوهات منشورة حالياً.</div>
       ) : null}
 
       {!isLoading && videos.length > 0 ? (

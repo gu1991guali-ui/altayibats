@@ -106,7 +106,7 @@ export function AdminPage() {
     }
 
     if (!videoFile.type.startsWith("video/")) {
-      setError("اختر ملف فيديو صالحًا.");
+      setError("اختر ملف فيديو صالحاً.");
       return;
     }
 
@@ -287,16 +287,17 @@ export function AdminPage() {
 
   return (
     <section>
-      <div className="page-heading">
-        <h1>لوحة التحكم</h1>
-        <p>إدارة الفيديوهات المنشورة وبياناتها وعدد التعليقات والإعجابات.</p>
+      <div className="page-heading admin-heading">
+        <span className="eyebrow">لوحة الإدارة</span>
+        <h1>إدارة مكتبة الفيديوهات</h1>
+        <p>ارفع المحتوى، عدل بياناته، وتابع عدد التعليقات والإعجابات من مكان واحد.</p>
       </div>
 
       {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
       {message ? <StatusMessage tone="success">{message}</StatusMessage> : null}
 
       <div className="admin-grid">
-        <aside className="form-panel">
+        <aside className="form-panel admin-form-panel">
           <h2>رفع فيديو جديد</h2>
           <form className="form-stack" onSubmit={handleUpload} key={formKey}>
             <div className="field">
@@ -353,7 +354,7 @@ export function AdminPage() {
           </form>
 
           {editing ? (
-            <form className="form-stack" onSubmit={handleUpdate} style={{ marginTop: 24 }}>
+            <form className="form-stack edit-stack" onSubmit={handleUpdate}>
               <h2>تعديل الفيديو</h2>
               <div className="field">
                 <label htmlFor="editTitle">العنوان</label>
@@ -409,8 +410,11 @@ export function AdminPage() {
         </aside>
 
         <section className="content-panel">
-          <div className="engagement-bar" style={{ marginBottom: 16 }}>
-            <h2>الفيديوهات</h2>
+          <div className="section-head compact">
+            <div>
+              <h2>الفيديوهات</h2>
+              <p>{videos.length} عنصر في المكتبة</p>
+            </div>
             <button className="button secondary button-small" type="button" onClick={loadVideos}>
               <RefreshCw size={16} aria-hidden="true" />
               تحديث

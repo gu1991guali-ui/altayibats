@@ -37,7 +37,7 @@ export function LoginPage() {
     setError("");
 
     if (!isSupabaseConfigured) {
-      setError("أضف مفاتيح Supabase في ملف .env.local أولًا.");
+      setError("أضف مفاتيح Supabase في ملف .env.local أولاً.");
       return;
     }
 
@@ -59,49 +59,54 @@ export function LoginPage() {
   }
 
   return (
-    <section className="form-panel">
-      <div className="page-heading">
-        <h1>تسجيل الدخول</h1>
-        <p>ادخل إلى حسابك لمشاهدة الفيديوهات والتعليق والإعجاب.</p>
+    <section className="auth-layout">
+      <div className="auth-copy">
+        <span className="eyebrow">وصول آمن</span>
+        <h1>ادخل إلى حسابك وتابع الفيديوهات والتعليقات.</h1>
+        <p>تسجيل الدخول يفتح مشاهدة الفيديوهات والتفاعل معها ويعيدك إلى الصفحة التي طلبتها.</p>
       </div>
 
-      {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
+      <div className="form-panel">
+        {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
 
-      <form className="form-stack" onSubmit={handleSubmit}>
-        <div className="field">
-          <label htmlFor="email">البريد الإلكتروني</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
-        </div>
+        <form className="form-stack" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="email">البريد الإلكتروني</label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+              placeholder="name@example.com"
+              required
+            />
+          </div>
 
-        <div className="field">
-          <label htmlFor="password">كلمة المرور</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </div>
+          <div className="field">
+            <label htmlFor="password">كلمة المرور</label>
+            <input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-        <div className="form-actions">
-          <button className="button" type="submit" disabled={isSubmitting}>
-            <LogIn size={17} aria-hidden="true" />
-            {isSubmitting ? "جار الدخول..." : "دخول"}
-          </button>
-          <Link className="button ghost" to="/register">
-            حساب جديد
-          </Link>
-        </div>
-      </form>
+          <div className="form-actions">
+            <button className="button" type="submit" disabled={isSubmitting}>
+              <LogIn size={17} aria-hidden="true" />
+              {isSubmitting ? "جار الدخول..." : "دخول"}
+            </button>
+            <Link className="button ghost" to="/register">
+              حساب جديد
+            </Link>
+          </div>
+        </form>
+      </div>
     </section>
   );
 }
