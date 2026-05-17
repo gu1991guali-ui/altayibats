@@ -1,6 +1,16 @@
 export type UserRole = "user" | "admin";
 export type VideoType = "long" | "short";
 
+export type CaptionTrack = {
+  src?: string;
+  url?: string;
+  label?: string;
+  srclang?: string;
+  lang?: string;
+  language?: string;
+  default?: boolean;
+};
+
 export type AppUser = {
   id: string;
   email: string | null;
@@ -20,9 +30,12 @@ export type VideoRecord = {
   id: string;
   title: string;
   description: string | null;
+  category?: string | null;
   video_type: VideoType;
   video_path: string;
   thumbnail_path: string | null;
+  subtitle_url?: string | null;
+  captions?: CaptionTrack[] | string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
