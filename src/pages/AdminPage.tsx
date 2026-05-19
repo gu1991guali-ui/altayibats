@@ -1,11 +1,19 @@
-import { Heart, MessageCircle, Pencil, RefreshCw, Trash2, UploadCloud } from "lucide-react";
+import { GripVertical, Heart, MessageCircle, Pencil, RefreshCw, Trash2, UploadCloud } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { StatusMessage } from "@/components/StatusMessage";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
-import type { VideoRecord, VideoSummary, VideoType } from "@/lib/types";
+import type { PlaylistRecord, PlaylistVideoRecord, VideoRecord, VideoSummary, VideoType } from "@/lib/types";
 import { enrichVideos, safeFileExtension } from "@/lib/video-utils";
+
+type AdminPlaylistItem = PlaylistVideoRecord & {
+  video: VideoSummary | null;
+};
+
+type AdminPlaylist = PlaylistRecord & {
+  items: AdminPlaylistItem[];
+};
 
 function randomId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -16,11 +24,7 @@ function randomId() {
 }
 
 function errorMessage(error: unknown) {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return "حدث خطأ غير متوقع.";
+  return error instanceof Error ? error.message : "حدث خطأ غير متوقع.";
 }
 
 async function uploadObject(bucket: "videos" | "thumbnails", path: string, file: File) {
@@ -39,6 +43,7 @@ export function AdminPage() {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const [videos, setVideos] = useState<VideoSummary[]>([]);
+  const [playlists, setPlaylists] = useState<AdminPlaylist[]>([]);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoType, setVideoType] = useState<VideoType>("long");
@@ -50,6 +55,13 @@ export function AdminPage() {
   const [editDescription, setEditDescription] = useState("");
   const [editVideoType, setEditVideoType] = useState<VideoType>("long");
   const [editThumbnailFile, setEditThumbnailFile] = useState<File | null>(null);
+  const [playlistTitle, setPlaylistTitle] = useState("");
+  const [playlistDescription, setPlaylistDescription] = useState("");
+  const [editingPlaylistId, setEditingPlaylistId] = useState<string | null>(null);
+  const [editPlaylistTitle, setEditPlaylistTitle] = useState("");
+  const [editPlaylistDescription, setEditPlaylistDescription] = useState("");
+  const [selectedVideos, setSelectedVideos] = useState<Record<string, string>>({});
+  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -64,10 +76,7 @@ export function AdminPage() {
     setIsLoading(true);
     setError("");
 
-    const { data, error: videosError } = await supabase
-      .from("videos")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error: videosError } = await supabase.from("videos").select("*").order("created_at", { ascending: false });
 
     if (videosError) {
       setError("تعذر تحميل قائمة الفيديوهات.");
@@ -80,6 +89,63 @@ export function AdminPage() {
     setIsLoading(false);
   }, [isAdmin]);
 
+  const loadPlaylists = useCallback(async () => {
+    if (!isSupabaseConfigured || !isAdmin) {
+      return;
+    }
+
+    const { data: playlistRows, error: playlistsError } = await supabase
+      .from("playlists")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (playlistsError) {
+      setPlaylists([]);
+      return;
+    }
+
+    const playlistRecords = (playlistRows ?? []) as PlaylistRecord[];
+
+    if (playlistRecords.length === 0) {
+      setPlaylists([]);
+      return;
+    }
+
+    const { data: joinRows, error: joinsError } = await supabase
+      .from("playlist_videos")
+      .select("*")
+      .in("playlist_id", playlistRecords.map((playlist) => playlist.id))
+      .order("position", { ascending: true });
+
+    if (joinsError) {
+      setPlaylists(playlistRecords.map((playlist) => ({ ...playlist, items: [] })));
+      return;
+    }
+
+    const joins = (joinRows ?? []) as PlaylistVideoRecord[];
+    const videoIds = Array.from(new Set(joins.map((join) => join.video_id)));
+    const videoMap = new Map<string, VideoSummary>();
+
+    if (videoIds.length > 0) {
+      const { data: videoRows } = await supabase.from("videos").select("*").in("id", videoIds);
+      (await enrichVideos((videoRows ?? []) as VideoRecord[])).forEach((video) => videoMap.set(video.id, video));
+    }
+
+    setPlaylists(
+      playlistRecords.map((playlist) => ({
+        ...playlist,
+        items: joins
+          .filter((join) => join.playlist_id === playlist.id)
+          .sort((first, second) => first.position - second.position)
+          .map((join) => ({ ...join, video: videoMap.get(join.video_id) ?? null }))
+      }))
+    );
+  }, [isAdmin]);
+
+  const reloadAll = useCallback(async () => {
+    await Promise.all([loadVideos(), loadPlaylists()]);
+  }, [loadPlaylists, loadVideos]);
+
   useEffect(() => {
     if (isSupabaseConfigured && !authLoading && !user) {
       navigate("/login?redirect=/admin", { replace: true });
@@ -88,9 +154,9 @@ export function AdminPage() {
 
   useEffect(() => {
     if (!authLoading) {
-      void loadVideos();
+      void reloadAll();
     }
-  }, [authLoading, loadVideos]);
+  }, [authLoading, reloadAll]);
 
   async function handleUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -106,7 +172,7 @@ export function AdminPage() {
     }
 
     if (!videoFile.type.startsWith("video/")) {
-      setError("اختر ملف فيديو صالحاً.");
+      setError("اختر ملف فيديو صالحا.");
       return;
     }
 
@@ -151,7 +217,7 @@ export function AdminPage() {
       setThumbnailFile(null);
       setFormKey((value) => value + 1);
       setMessage("تم رفع الفيديو بنجاح.");
-      await loadVideos();
+      await reloadAll();
     } catch (uploadError) {
       if (videoPath) {
         await supabase.storage.from("videos").remove([videoPath]);
@@ -189,11 +255,6 @@ export function AdminPage() {
       return;
     }
 
-    if (editThumbnailFile && !editThumbnailFile.type.startsWith("image/")) {
-      setError("الصورة المصغرة يجب أن تكون ملف صورة.");
-      return;
-    }
-
     setIsSaving(true);
     setError("");
     setMessage("");
@@ -225,14 +286,9 @@ export function AdminPage() {
       }
 
       setEditing(null);
-      setEditThumbnailFile(null);
       setMessage("تم تحديث بيانات الفيديو.");
-      await loadVideos();
+      await reloadAll();
     } catch (updateError) {
-      if (editThumbnailFile && nextThumbnailPath && nextThumbnailPath !== editing.thumbnail_path) {
-        await supabase.storage.from("thumbnails").remove([nextThumbnailPath]);
-      }
-
       setError(errorMessage(updateError));
     } finally {
       setIsSaving(false);
@@ -240,9 +296,7 @@ export function AdminPage() {
   }
 
   async function handleDelete(video: VideoSummary) {
-    const confirmed = window.confirm("هل تريد حذف الفيديو وكل تعليقاته وإعجاباته؟");
-
-    if (!confirmed) {
+    if (!window.confirm("هل تريد حذف الفيديو وكل تعليقاته وإعجاباته؟")) {
       return;
     }
 
@@ -265,8 +319,173 @@ export function AdminPage() {
     }
 
     setMessage("تم حذف الفيديو.");
-    await loadVideos();
+    await reloadAll();
     setIsSaving(false);
+  }
+
+  async function handleCreatePlaylist(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!user || !isAdmin || !playlistTitle.trim()) {
+      setError("عنوان قائمة التشغيل مطلوب.");
+      return;
+    }
+
+    setIsSaving(true);
+    setError("");
+    setMessage("");
+
+    const { error: insertError } = await supabase.from("playlists").insert({
+      title: playlistTitle.trim(),
+      description: playlistDescription.trim() || null,
+      created_by: user.id
+    });
+
+    setIsSaving(false);
+
+    if (insertError) {
+      setError("تعذر إنشاء قائمة التشغيل. تأكد من تشغيل ترحيل جداول playlists.");
+      return;
+    }
+
+    setPlaylistTitle("");
+    setPlaylistDescription("");
+    setMessage("تم إنشاء قائمة التشغيل.");
+    await loadPlaylists();
+  }
+
+  async function handleDeletePlaylist(playlistId: string) {
+    if (!window.confirm("هل تريد حذف قائمة التشغيل؟")) {
+      return;
+    }
+
+    setIsSaving(true);
+    const { error: deleteError } = await supabase.from("playlists").delete().eq("id", playlistId);
+    setIsSaving(false);
+
+    if (deleteError) {
+      setError("تعذر حذف قائمة التشغيل.");
+      return;
+    }
+
+    setMessage("تم حذف قائمة التشغيل.");
+    await loadPlaylists();
+  }
+
+  function startPlaylistEdit(playlist: AdminPlaylist) {
+    setEditingPlaylistId(playlist.id);
+    setEditPlaylistTitle(playlist.title);
+    setEditPlaylistDescription(playlist.description ?? "");
+    setError("");
+    setMessage("");
+  }
+
+  async function handleUpdatePlaylist(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!editingPlaylistId || !editPlaylistTitle.trim()) {
+      setError("عنوان قائمة التشغيل مطلوب.");
+      return;
+    }
+
+    setIsSaving(true);
+    setError("");
+    setMessage("");
+
+    const { error: updateError } = await supabase
+      .from("playlists")
+      .update({
+        title: editPlaylistTitle.trim(),
+        description: editPlaylistDescription.trim() || null
+      })
+      .eq("id", editingPlaylistId);
+
+    setIsSaving(false);
+
+    if (updateError) {
+      setError("تعذر تعديل قائمة التشغيل.");
+      return;
+    }
+
+    setEditingPlaylistId(null);
+    setEditPlaylistTitle("");
+    setEditPlaylistDescription("");
+    setMessage("تم تعديل قائمة التشغيل.");
+    await loadPlaylists();
+  }
+
+  async function handleAddPlaylistVideo(playlist: AdminPlaylist) {
+    const videoId = selectedVideos[playlist.id];
+
+    if (!videoId) {
+      setError("اختر فيديو لإضافته.");
+      return;
+    }
+
+    setIsSaving(true);
+    setError("");
+    setMessage("");
+
+    const nextPosition = playlist.items.length === 0 ? 1 : Math.max(...playlist.items.map((item) => item.position)) + 1;
+    const { error: insertError } = await supabase.from("playlist_videos").insert({
+      playlist_id: playlist.id,
+      video_id: videoId,
+      position: nextPosition
+    });
+
+    setIsSaving(false);
+
+    if (insertError) {
+      setError("تعذر إضافة الفيديو. قد يكون موجودا في القائمة مسبقا.");
+      return;
+    }
+
+    setSelectedVideos((value) => ({ ...value, [playlist.id]: "" }));
+    await loadPlaylists();
+  }
+
+  async function handleRemovePlaylistVideo(itemId: string) {
+    setIsSaving(true);
+    const { error: deleteError } = await supabase.from("playlist_videos").delete().eq("id", itemId);
+    setIsSaving(false);
+
+    if (deleteError) {
+      setError("تعذر إزالة الفيديو من القائمة.");
+      return;
+    }
+
+    await loadPlaylists();
+  }
+
+  async function reorderPlaylist(playlist: AdminPlaylist, targetItemId: string) {
+    if (!draggedItemId || draggedItemId === targetItemId) {
+      return;
+    }
+
+    const sourceIndex = playlist.items.findIndex((item) => item.id === draggedItemId);
+    const targetIndex = playlist.items.findIndex((item) => item.id === targetItemId);
+
+    if (sourceIndex < 0 || targetIndex < 0) {
+      return;
+    }
+
+    const nextItems = [...playlist.items];
+    const [moved] = nextItems.splice(sourceIndex, 1);
+    nextItems.splice(targetIndex, 0, moved);
+
+    setDraggedItemId(null);
+    setIsSaving(true);
+    const updates = await Promise.all(
+      nextItems.map((item, index) => supabase.from("playlist_videos").update({ position: index + 1 }).eq("id", item.id))
+    );
+    setIsSaving(false);
+
+    if (updates.some((result) => result.error)) {
+      setError("تعذر حفظ ترتيب قائمة التشغيل.");
+      return;
+    }
+
+    await loadPlaylists();
   }
 
   if (!isSupabaseConfigured) {
@@ -286,11 +505,11 @@ export function AdminPage() {
   }
 
   return (
-    <section>
+    <section className="overflow-x-hidden" dir="rtl">
       <div className="page-heading admin-heading">
         <span className="eyebrow">لوحة الإدارة</span>
-        <h1>إدارة مكتبة الفيديوهات</h1>
-        <p>ارفع المحتوى، عدل بياناته، وتابع عدد التعليقات والإعجابات من مكان واحد.</p>
+        <h1>إدارة مكتبة الفيديوهات وقوائم التشغيل</h1>
+        <p>ارفع المحتوى، عدل بياناته، وأنشئ قوائم تشغيل مرتبة تظهر في الصفحة الرئيسية.</p>
       </div>
 
       {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
@@ -307,49 +526,30 @@ export function AdminPage() {
 
             <div className="field">
               <label htmlFor="description">الوصف</label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
+              <textarea id="description" value={description} onChange={(event) => setDescription(event.target.value)} />
             </div>
 
             <div className="field">
               <label htmlFor="videoType">نوع الفيديو</label>
-              <select
-                id="videoType"
-                value={videoType}
-                onChange={(event) => setVideoType(event.target.value as VideoType)}
-              >
-                <option value="long">فيديو طويل 16:9</option>
-                <option value="short">فيديو قصير 9:16</option>
+              <select id="videoType" value={videoType} onChange={(event) => setVideoType(event.target.value as VideoType)}>
+                <option value="long">فيديو أفقي 16:9</option>
+                <option value="short">فيديو عمودي 9:16</option>
               </select>
             </div>
 
             <div className="field">
               <label htmlFor="videoFile">ملف الفيديو</label>
-              <input
-                id="videoFile"
-                type="file"
-                accept="video/*"
-                onChange={(event) => setVideoFile(event.target.files?.[0] ?? null)}
-                required
-              />
+              <input id="videoFile" type="file" accept="video/*" onChange={(event) => setVideoFile(event.target.files?.[0] ?? null)} required />
             </div>
 
             <div className="field">
               <label htmlFor="thumbnailFile">الصورة المصغرة</label>
-              <input
-                id="thumbnailFile"
-                type="file"
-                accept="image/*"
-                onChange={(event) => setThumbnailFile(event.target.files?.[0] ?? null)}
-              />
+              <input id="thumbnailFile" type="file" accept="image/*" onChange={(event) => setThumbnailFile(event.target.files?.[0] ?? null)} />
             </div>
 
-            <button className="button" type="submit" disabled={isSaving}>
+            <button className="button transition-all duration-200" type="submit" disabled={isSaving}>
               <UploadCloud size={17} aria-hidden="true" />
-              {isSaving ? "جار الرفع..." : "رفع الفيديو"}
+              {isSaving ? "جار الحفظ..." : "رفع الفيديو"}
             </button>
           </form>
 
@@ -358,50 +558,28 @@ export function AdminPage() {
               <h2>تعديل الفيديو</h2>
               <div className="field">
                 <label htmlFor="editTitle">العنوان</label>
-                <input
-                  id="editTitle"
-                  value={editTitle}
-                  onChange={(event) => setEditTitle(event.target.value)}
-                  required
-                />
+                <input id="editTitle" value={editTitle} onChange={(event) => setEditTitle(event.target.value)} required />
               </div>
-
               <div className="field">
                 <label htmlFor="editDescription">الوصف</label>
-                <textarea
-                  id="editDescription"
-                  value={editDescription}
-                  onChange={(event) => setEditDescription(event.target.value)}
-                />
+                <textarea id="editDescription" value={editDescription} onChange={(event) => setEditDescription(event.target.value)} />
               </div>
-
               <div className="field">
                 <label htmlFor="editVideoType">نوع الفيديو</label>
-                <select
-                  id="editVideoType"
-                  value={editVideoType}
-                  onChange={(event) => setEditVideoType(event.target.value as VideoType)}
-                >
-                  <option value="long">فيديو طويل 16:9</option>
-                  <option value="short">فيديو قصير 9:16</option>
+                <select id="editVideoType" value={editVideoType} onChange={(event) => setEditVideoType(event.target.value as VideoType)}>
+                  <option value="long">فيديو أفقي 16:9</option>
+                  <option value="short">فيديو عمودي 9:16</option>
                 </select>
               </div>
-
               <div className="field">
                 <label htmlFor="editThumbnail">صورة مصغرة جديدة</label>
-                <input
-                  id="editThumbnail"
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => setEditThumbnailFile(event.target.files?.[0] ?? null)}
-                />
+                <input id="editThumbnail" type="file" accept="image/*" onChange={(event) => setEditThumbnailFile(event.target.files?.[0] ?? null)} />
               </div>
-
-              <div className="row-actions">
-                <button className="button" type="submit" disabled={isSaving}>
+              <div className="row-actions flex-wrap gap-3">
+                <button className="button transition-all duration-200" type="submit" disabled={isSaving}>
                   حفظ التعديل
                 </button>
-                <button className="button ghost" type="button" onClick={() => setEditing(null)}>
+                <button className="button ghost transition-all duration-200" type="button" onClick={() => setEditing(null)}>
                   إلغاء
                 </button>
               </div>
@@ -409,63 +587,166 @@ export function AdminPage() {
           ) : null}
         </aside>
 
-        <section className="content-panel">
-          <div className="section-head compact">
-            <div>
-              <h2>الفيديوهات</h2>
-              <p>{videos.length} عنصر في المكتبة</p>
+        <div className="admin-main-stack overflow-x-hidden">
+          <section className="content-panel overflow-x-hidden">
+            <div className="section-head compact">
+              <div>
+                <h2>قوائم التشغيل</h2>
+                <p>{playlists.length} قائمة قابلة للترتيب بالسحب والإفلات.</p>
+              </div>
+              <button className="button secondary button-small transition-all duration-200" type="button" onClick={reloadAll}>
+                <RefreshCw size={16} aria-hidden="true" />
+                تحديث
+              </button>
             </div>
-            <button className="button secondary button-small" type="button" onClick={loadVideos}>
-              <RefreshCw size={16} aria-hidden="true" />
-              تحديث
-            </button>
-          </div>
 
-          <div className="admin-list">
-            {videos.length === 0 ? <div className="empty-state">لا توجد فيديوهات.</div> : null}
+            <form className="playlist-create-form" onSubmit={handleCreatePlaylist}>
+              <div className="field">
+                <label htmlFor="playlistTitle">عنوان القائمة</label>
+                <input id="playlistTitle" value={playlistTitle} onChange={(event) => setPlaylistTitle(event.target.value)} required />
+              </div>
+              <div className="field">
+                <label htmlFor="playlistDescription">وصف القائمة</label>
+                <input id="playlistDescription" value={playlistDescription} onChange={(event) => setPlaylistDescription(event.target.value)} />
+              </div>
+              <button className="button transition-all duration-200" type="submit" disabled={isSaving}>
+                إنشاء
+              </button>
+            </form>
 
-            {videos.map((video) => (
-              <article className="admin-video-row" key={video.id}>
-                <div className={`admin-thumb ${video.video_type === "short" ? "short" : "long"}`}>
-                  {video.thumbnail_url ? <img src={video.thumbnail_url} alt="" /> : null}
-                </div>
-
-                <div className="admin-row-body">
-                  <h3>{video.title}</h3>
-                  {video.description ? <p>{video.description}</p> : null}
-
-                  <div className="stats-line">
-                    <span className={video.video_type === "short" ? "type-badge short" : "type-badge"}>
-                      {video.video_type === "short" ? "قصير" : "طويل"}
-                    </span>
-                    <span>
-                      <Heart size={15} aria-hidden="true" /> {video.likes_count} إعجاب
-                    </span>
-                    <span>
-                      <MessageCircle size={15} aria-hidden="true" /> {video.comments_count} تعليق
-                    </span>
-                  </div>
-
-                  <div className="row-actions">
-                    <button className="button ghost button-small" type="button" onClick={() => startEdit(video)}>
+            <div className="playlist-admin-list">
+              {playlists.length === 0 ? <div className="empty-state compact-empty">لا توجد قوائم تشغيل بعد.</div> : null}
+              {playlists.map((playlist) => (
+                <article className="playlist-admin-card" key={playlist.id}>
+                  {editingPlaylistId === playlist.id ? (
+                    <form className="playlist-edit-form" onSubmit={handleUpdatePlaylist}>
+                      <div className="field">
+                        <label htmlFor={`edit-playlist-title-${playlist.id}`}>عنوان القائمة</label>
+                        <input
+                          id={`edit-playlist-title-${playlist.id}`}
+                          value={editPlaylistTitle}
+                          onChange={(event) => setEditPlaylistTitle(event.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="field">
+                        <label htmlFor={`edit-playlist-description-${playlist.id}`}>وصف القائمة</label>
+                        <input
+                          id={`edit-playlist-description-${playlist.id}`}
+                          value={editPlaylistDescription}
+                          onChange={(event) => setEditPlaylistDescription(event.target.value)}
+                        />
+                      </div>
+                      <div className="row-actions flex-wrap gap-3">
+                        <button className="button button-small transition-all duration-200" type="submit" disabled={isSaving}>
+                          حفظ
+                        </button>
+                        <button
+                          className="button ghost button-small transition-all duration-200"
+                          type="button"
+                          onClick={() => setEditingPlaylistId(null)}
+                        >
+                          إلغاء
+                        </button>
+                      </div>
+                    </form>
+                  ) : null}
+                  <div className="playlist-admin-head">
+                    <div>
+                      <h3>{playlist.title}</h3>
+                      {playlist.description ? <p>{playlist.description}</p> : null}
+                    </div>
+                    <button className="button ghost button-small transition-all duration-200" type="button" onClick={() => startPlaylistEdit(playlist)}>
                       <Pencil size={15} aria-hidden="true" />
                       تعديل
                     </button>
-                    <button
-                      className="button danger button-small"
-                      type="button"
-                      onClick={() => handleDelete(video)}
-                      disabled={isSaving}
-                    >
+                    <button className="button danger button-small transition-all duration-200" type="button" onClick={() => handleDeletePlaylist(playlist.id)} disabled={isSaving}>
                       <Trash2 size={15} aria-hidden="true" />
                       حذف
                     </button>
                   </div>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
+
+                  <div className="playlist-add-row">
+                    <select value={selectedVideos[playlist.id] ?? ""} onChange={(event) => setSelectedVideos((value) => ({ ...value, [playlist.id]: event.target.value }))}>
+                      <option value="">اختر فيديو</option>
+                      {videos.map((video) => (
+                        <option key={video.id} value={video.id}>
+                          {video.title}
+                        </option>
+                      ))}
+                    </select>
+                    <button className="button secondary button-small transition-all duration-200" type="button" onClick={() => handleAddPlaylistVideo(playlist)} disabled={isSaving}>
+                      إضافة
+                    </button>
+                  </div>
+
+                  <div className="playlist-sort-list">
+                    {playlist.items.map((item) => (
+                      <div
+                        className="playlist-sort-row"
+                        key={item.id}
+                        draggable
+                        onDragStart={() => setDraggedItemId(item.id)}
+                        onDragOver={(event) => event.preventDefault()}
+                        onDrop={() => reorderPlaylist(playlist, item.id)}
+                      >
+                        <GripVertical size={18} aria-hidden="true" />
+                        <span>{item.position}</span>
+                        <strong>{item.video?.title ?? "فيديو محذوف"}</strong>
+                        <button className="button ghost button-small transition-all duration-200" type="button" onClick={() => handleRemovePlaylistVideo(item.id)} disabled={isSaving}>
+                          إزالة
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section className="content-panel overflow-x-hidden">
+            <div className="section-head compact">
+              <div>
+                <h2>الفيديوهات</h2>
+                <p>{videos.length} عنصر في المكتبة</p>
+              </div>
+            </div>
+
+            <div className="admin-list">
+              {videos.length === 0 ? <div className="empty-state">لا توجد فيديوهات.</div> : null}
+              {videos.map((video) => (
+                <article className="admin-video-row" key={video.id}>
+                  <div className={`admin-thumb ${video.video_type === "short" ? "short" : "long"}`}>
+                    {video.thumbnail_url ? <img src={video.thumbnail_url} alt="" /> : null}
+                  </div>
+                  <div className="admin-row-body">
+                    <h3>{video.title}</h3>
+                    {video.description ? <p>{video.description}</p> : null}
+                    <div className="stats-line">
+                      <span className={video.video_type === "short" ? "type-badge short" : "type-badge"}>{video.video_type === "short" ? "عمودي" : "أفقي"}</span>
+                      <span>
+                        <Heart size={15} aria-hidden="true" /> {video.likes_count} إعجاب
+                      </span>
+                      <span>
+                        <MessageCircle size={15} aria-hidden="true" /> {video.comments_count} تعليق
+                      </span>
+                    </div>
+                    <div className="row-actions flex-wrap gap-3">
+                      <button className="button ghost button-small transition-all duration-200" type="button" onClick={() => startEdit(video)}>
+                        <Pencil size={15} aria-hidden="true" />
+                        تعديل
+                      </button>
+                      <button className="button danger button-small transition-all duration-200" type="button" onClick={() => handleDelete(video)} disabled={isSaving}>
+                        <Trash2 size={15} aria-hidden="true" />
+                        حذف
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        </div>
       </div>
     </section>
   );

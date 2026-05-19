@@ -11,6 +11,8 @@ export type CaptionTrack = {
   default?: boolean;
 };
 
+export type TranslationMap = Partial<Record<"ar" | "en" | "fr" | "es", string>>;
+
 export type AppUser = {
   id: string;
   email: string | null;
@@ -36,6 +38,7 @@ export type VideoRecord = {
   thumbnail_path: string | null;
   subtitle_url?: string | null;
   captions?: CaptionTrack[] | string | null;
+  translations?: TranslationMap | string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -58,4 +61,26 @@ export type CommentRecord = {
 
 export type CommentWithAuthor = CommentRecord & {
   author?: PublicProfile | null;
+};
+
+export type PlaylistRecord = {
+  id: string;
+  title: string;
+  description: string | null;
+  category: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlaylistVideoRecord = {
+  id: string;
+  playlist_id: string;
+  video_id: string;
+  position: number;
+  created_at: string;
+};
+
+export type PlaylistWithVideos = PlaylistRecord & {
+  videos: VideoSummary[];
 };

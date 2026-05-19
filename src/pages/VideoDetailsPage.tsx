@@ -9,6 +9,7 @@ import type {
   CommentRecord,
   CommentWithAuthor,
   PublicProfile,
+  TranslationMap,
   VideoRecord,
   VideoSummary
 } from "@/lib/types";
@@ -21,25 +22,14 @@ type NormalizedCaption = {
   isDefault: boolean;
 };
 
-const STATIC_CAPTION_TRACKS: NormalizedCaption[] = [
-  {
-    src: "/subtitles/video-ar.vtt",
-    srcLang: "ar",
-    label: "العربية",
-    isDefault: true
-  },
-  {
-    src: "/subtitles/video-en.vtt",
-    srcLang: "en",
-    label: "English",
-    isDefault: false
-  }
-];
+const LANGUAGE_OPTIONS = [
+  { value: "ar", label: "العربية" },
+  { value: "en", label: "English" },
+  { value: "fr", label: "Français" },
+  { value: "es", label: "Español" }
+] as const;
 
-const FALLBACK_CATEGORY_LABELS = {
-  long: "فيديو أفقي",
-  short: "فيديو عمودي"
-} as const;
+type SupportedLanguage = (typeof LANGUAGE_OPTIONS)[number]["value"];
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ar-SA", {
@@ -48,24 +38,23 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
-function getVideoCategory(video: Pick<VideoRecord, "category" | "video_type">) {
-  return video.category?.trim() || FALLBACK_CATEGORY_LABELS[video.video_type];
-}
-
-function parseCaptionJson(value: string): CaptionTrack[] | null {
+function parseJson<T>(value: string): T | null {
   try {
-    const parsed = JSON.parse(value) as unknown;
-    return Array.isArray(parsed) ? (parsed as CaptionTrack[]) : null;
+    return JSON.parse(value) as T;
   } catch {
     return null;
   }
+}
+
+function getVideoCategory(video: Pick<VideoRecord, "category" | "video_type">) {
+  return video.category?.trim() || (video.video_type === "short" ? "فيديو عمودي" : "فيديو أفقي");
 }
 
 function normalizeCaptions(video: VideoRecord): NormalizedCaption[] {
   const captions = Array.isArray(video.captions)
     ? video.captions
     : typeof video.captions === "string"
-      ? parseCaptionJson(video.captions) ?? [{ src: video.captions, label: "ترجمة", srclang: "ar" }]
+      ? parseJson<CaptionTrack[]>(video.captions) ?? [{ src: video.captions, label: "ترجمة", srclang: "ar" }]
       : [];
 
   const tracks = captions
@@ -92,38 +81,27 @@ function normalizeCaptions(video: VideoRecord): NormalizedCaption[] {
   }
 
   return video.subtitle_url
-    ? [
-        {
-          src: video.subtitle_url,
-          label: "العربية",
-          srcLang: "ar",
-          isDefault: true
-        }
-      ]
+    ? [{ src: video.subtitle_url, label: "العربية", srcLang: "ar", isDefault: true }]
     : [];
 }
 
-function mergeCaptionTracks(video: VideoRecord): NormalizedCaption[] {
-  const dynamicTracks = normalizeCaptions(video);
-  const usedSources = new Set(dynamicTracks.map((track) => track.src));
-  const hasDefaultTrack = dynamicTracks.some((track) => track.isDefault);
-  const staticTracks = STATIC_CAPTION_TRACKS.filter((track) => !usedSources.has(track.src)).map((track) => ({
-    ...track,
-    isDefault: track.isDefault && !hasDefaultTrack
-  }));
+function normalizeTranslations(video: VideoRecord): TranslationMap {
+  const translations =
+    typeof video.translations === "string"
+      ? parseJson<TranslationMap>(video.translations)
+      : video.translations;
 
-  return [...dynamicTracks, ...staticTracks];
+  return {
+    ar: video.description ?? "",
+    ...(translations ?? {})
+  };
 }
 
 function SuggestedVideoCard({ video }: { video: VideoSummary }) {
   const isShortVideo = video.video_type === "short";
 
   return (
-    <Link
-      className="suggested-video-card transition-all duration-200"
-      to={`/videos/${video.id}`}
-      aria-label={`مشاهدة ${video.title}`}
-    >
+    <Link className="suggested-video-card transition-all duration-200" to={`/videos/${video.id}`}>
       <div className={`suggested-video-thumb ${isShortVideo ? "short" : "long"}`}>
         {video.thumbnail_url ? (
           <img src={video.thumbnail_url} alt="" />
@@ -165,6 +143,7 @@ export function VideoDetailsPage() {
   const [likeCount, setLikeCount] = useState(0);
   const [commentCount, setCommentCount] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>("ar");
   const [newComment, setNewComment] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
@@ -172,7 +151,9 @@ export function VideoDetailsPage() {
   const [isActionBusy, setIsActionBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const captionTracks = useMemo(() => (video ? mergeCaptionTracks(video) : []), [video]);
+  const captionTracks = useMemo(() => (video ? normalizeCaptions(video) : []), [video]);
+  const translations = useMemo(() => (video ? normalizeTranslations(video) : {}), [video]);
+  const selectedDescription = translations[selectedLanguage] || translations.ar || video?.description || "";
 
   const loadRelatedVideos = useCallback(async (currentVideo: VideoRecord) => {
     const { data, error: relatedError } = await supabase
@@ -190,9 +171,8 @@ export function VideoDetailsPage() {
     const enriched = await enrichVideos((data ?? []) as VideoRecord[]);
     const currentCategory = getVideoCategory(currentVideo);
     const sameCategory = enriched.filter((item) => getVideoCategory(item) === currentCategory);
-    const latestFallback = enriched.filter((item) => getVideoCategory(item) !== currentCategory);
-
-    setRelatedVideos(sameCategory.length > 0 ? [...sameCategory, ...latestFallback].slice(0, 8) : enriched.slice(0, 8));
+    const fallback = enriched.filter((item) => getVideoCategory(item) !== currentCategory);
+    setRelatedVideos((sameCategory.length > 0 ? [...sameCategory, ...fallback] : enriched).slice(0, 8));
   }, []);
 
   const loadComments = useCallback(async () => {
@@ -212,30 +192,15 @@ export function VideoDetailsPage() {
     const profiles = new Map<string, PublicProfile>();
 
     if (userIds.length > 0) {
-      const { data: profileRows } = await supabase
-        .from("user_public_profiles")
-        .select("*")
-        .in("id", userIds);
-
-      ((profileRows ?? []) as PublicProfile[]).forEach((profile) => {
-        profiles.set(profile.id, profile);
-      });
+      const { data: profileRows } = await supabase.from("user_public_profiles").select("*").in("id", userIds);
+      ((profileRows ?? []) as PublicProfile[]).forEach((profile) => profiles.set(profile.id, profile));
     }
 
-    setComments(
-      rows.map((comment) => ({
-        ...comment,
-        author: profiles.get(comment.user_id) ?? null
-      }))
-    );
+    setComments(rows.map((comment) => ({ ...comment, author: profiles.get(comment.user_id) ?? null })));
   }, [videoId]);
 
   const loadEngagement = useCallback(async () => {
-    const [likes, commentTotal] = await Promise.all([
-      countRows("likes", videoId),
-      countRows("comments", videoId)
-    ]);
-
+    const [likes, commentTotal] = await Promise.all([countRows("likes", videoId), countRows("comments", videoId)]);
     setLikeCount(likes);
     setCommentCount(commentTotal);
 
@@ -246,7 +211,6 @@ export function VideoDetailsPage() {
         .eq("video_id", videoId)
         .eq("user_id", user.id)
         .maybeSingle();
-
       setLiked(Boolean(data));
     }
   }, [user, videoId]);
@@ -259,11 +223,7 @@ export function VideoDetailsPage() {
     setIsLoading(true);
     setError("");
 
-    const { data, error: videoError } = await supabase
-      .from("videos")
-      .select("*")
-      .eq("id", videoId)
-      .maybeSingle<VideoRecord>();
+    const { data, error: videoError } = await supabase.from("videos").select("*").eq("id", videoId).maybeSingle<VideoRecord>();
 
     if (videoError || !data) {
       setError("الفيديو غير موجود أو لا يمكن الوصول إليه.");
@@ -320,7 +280,7 @@ export function VideoDetailsPage() {
     setIsActionBusy(false);
 
     if (result.error) {
-      setError("تعذر تحديث الإعجاب. لا يمكن تسجيل أكثر من إعجاب واحد لنفس الفيديو.");
+      setError("تعذر تحديث الإعجاب.");
       return;
     }
 
@@ -338,17 +298,14 @@ export function VideoDetailsPage() {
     const content = newComment.trim();
 
     if (!content) {
-      setError("اكتب تعليقاً قبل الإرسال.");
+      setError("اكتب تعليقا قبل الإرسال.");
       return;
     }
 
     setIsActionBusy(true);
     setError("");
 
-    const { error: insertError } = await supabase
-      .from("comments")
-      .insert({ video_id: videoId, user_id: user.id, content });
-
+    const { error: insertError } = await supabase.from("comments").insert({ video_id: videoId, user_id: user.id, content });
     setIsActionBusy(false);
 
     if (insertError) {
@@ -371,11 +328,7 @@ export function VideoDetailsPage() {
     setIsActionBusy(true);
     setError("");
 
-    const { error: updateError } = await supabase
-      .from("comments")
-      .update({ content })
-      .eq("id", commentId);
-
+    const { error: updateError } = await supabase.from("comments").update({ content }).eq("id", commentId);
     setIsActionBusy(false);
 
     if (updateError) {
@@ -389,9 +342,7 @@ export function VideoDetailsPage() {
   }
 
   async function handleDeleteComment(commentId: string) {
-    const confirmed = window.confirm("هل تريد حذف هذا التعليق؟");
-
-    if (!confirmed) {
+    if (!window.confirm("هل تريد حذف هذا التعليق؟")) {
       return;
     }
 
@@ -399,7 +350,6 @@ export function VideoDetailsPage() {
     setError("");
 
     const { error: deleteError } = await supabase.from("comments").delete().eq("id", commentId);
-
     setIsActionBusy(false);
 
     if (deleteError) {
@@ -412,7 +362,7 @@ export function VideoDetailsPage() {
 
   if (!isSupabaseConfigured) {
     return (
-      <section className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
+      <section className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden" dir="rtl">
         <StatusMessage title="إعداد Supabase مطلوب" tone="error">
           أضف القيم في ملف .env.local لتشغيل صفحة الفيديو.
         </StatusMessage>
@@ -422,7 +372,7 @@ export function VideoDetailsPage() {
 
   if (authLoading || isLoading) {
     return (
-      <section className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
+      <section className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden" dir="rtl">
         <div className="empty-state">جار تحميل الفيديو...</div>
       </section>
     );
@@ -430,39 +380,28 @@ export function VideoDetailsPage() {
 
   if (!video) {
     return (
-      <section className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
+      <section className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden" dir="rtl">
         <StatusMessage tone="error">{error || "لم يتم العثور على الفيديو."}</StatusMessage>
       </section>
     );
   }
 
   const isShortVideo = video.video_type === "short";
-  const categoryLabel = getVideoCategory(video);
 
   return (
-    <section
-      className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden text-right"
-      dir="rtl"
-    >
-      <div className="video-watch-layout">
-        <main className="video-primary-column">
-          <div className="video-detail-layout">
+    <section className="video-detail-page max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden text-right" dir="rtl">
+      <div className="video-watch-layout overflow-x-hidden">
+        <main className="video-primary-column overflow-x-hidden">
+          <div className="video-detail-layout overflow-x-hidden">
             {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
 
-            <div className="video-player-area">
+            <div className="video-player-area overflow-x-hidden">
               <div
-                className={`video-player-shell bg-black rounded-2xl overflow-hidden shadow-xl ${
-                  isShortVideo
-                    ? "video-player-shell-short max-w-[420px] aspect-[9/16]"
-                    : "video-player-shell-wide aspect-video"
+                className={`video-player-shell bg-black rounded-2xl overflow-hidden shadow-xl transition-all duration-200 ${
+                  isShortVideo ? "video-player-shell-short max-w-[430px] aspect-[9/16]" : "video-player-shell-wide aspect-video"
                 }`}
               >
-                <video
-                  className="w-full h-full max-h-[80vh] object-contain"
-                  src={videoUrl}
-                  controls
-                  preload="metadata"
-                >
+                <video className="w-full h-full max-h-[80vh] object-contain" src={videoUrl} controls preload="metadata">
                   {captionTracks.map((track) => (
                     <track
                       key={`${track.srcLang}-${track.src}`}
@@ -475,22 +414,33 @@ export function VideoDetailsPage() {
                   ))}
                 </video>
               </div>
-              {/* TODO: Automatic multilingual subtitles require a backend pipeline for speech-to-text, translation, and VTT generation. */}
-              {/* TODO: Store generated tracks as video.captions or video.subtitle_url so the frontend can render them here. */}
-              {captionTracks.length === 0 ? (
-                <p className="caption-fallback-note">لا توجد ترجمة متاحة لهذا الفيديو حالياً</p>
-              ) : null}
+              {/* TODO: Automatic multilingual subtitles require backend speech-to-text, translation, and VTT generation. */}
+              {captionTracks.length === 0 ? <p className="caption-fallback-note">لا توجد ترجمة متاحة لهذا الفيديو حاليا.</p> : null}
             </div>
 
-            <div className="content-panel video-info-card">
+            <div className="content-panel video-info-card overflow-x-hidden">
               <div className="video-info-main">
-                <span className={isShortVideo ? "type-badge short" : "type-badge"}>{categoryLabel}</span>
+                <span className={isShortVideo ? "type-badge short" : "type-badge"}>{getVideoCategory(video)}</span>
                 <h1>{video.title}</h1>
-                {video.description ? <p>{video.description}</p> : null}
+                <div className="description-toolbar flex-wrap gap-3">
+                  <label htmlFor="descriptionLanguage">لغة الوصف</label>
+                  <select
+                    id="descriptionLanguage"
+                    value={selectedLanguage}
+                    onChange={(event) => setSelectedLanguage(event.target.value as SupportedLanguage)}
+                  >
+                    {LANGUAGE_OPTIONS.map((language) => (
+                      <option key={language.value} value={language.value}>
+                        {language.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {selectedDescription ? <p>{selectedDescription}</p> : null}
               </div>
 
               <div className="video-actions-row flex-wrap gap-3">
-                <div className="video-meta video-meta-pills" aria-label="إحصاءات الفيديو">
+                <div className="video-meta video-meta-pills">
                   <span>
                     <Heart size={16} aria-hidden="true" />
                     {likeCount} إعجاب
@@ -502,12 +452,7 @@ export function VideoDetailsPage() {
                 </div>
 
                 <div className="video-action-buttons flex-wrap gap-3">
-                  <button
-                    className="button secondary transition-all duration-200"
-                    type="button"
-                    onClick={handleLike}
-                    disabled={isActionBusy}
-                  >
+                  <button className="button secondary transition-all duration-200" type="button" onClick={handleLike} disabled={isActionBusy}>
                     <Heart size={17} fill={liked ? "currentColor" : "none"} aria-hidden="true" />
                     {liked ? "إلغاء الإعجاب" : "إعجاب"}
                   </button>
@@ -515,7 +460,7 @@ export function VideoDetailsPage() {
               </div>
             </div>
 
-            <section className="content-panel video-comments-card">
+            <section className="content-panel video-comments-card overflow-x-hidden">
               <div className="section-head compact">
                 <div>
                   <h2>التعليقات</h2>
@@ -548,10 +493,7 @@ export function VideoDetailsPage() {
 
                 {comments.map((comment) => {
                   const canManage = comment.user_id === user?.id || isAdmin;
-                  const authorName =
-                    comment.user_id === user?.id
-                      ? "أنت"
-                      : comment.author?.display_name || "مستخدم";
+                  const authorName = comment.user_id === user?.id ? "أنت" : comment.author?.display_name || "مستخدم";
 
                   return (
                     <article className="comment-item" key={comment.id}>
@@ -563,29 +505,13 @@ export function VideoDetailsPage() {
                       {editingId === comment.id ? (
                         <div className="form-stack">
                           <div className="field">
-                            <textarea
-                              value={editingContent}
-                              onChange={(event) => setEditingContent(event.target.value)}
-                              maxLength={2000}
-                            />
+                            <textarea value={editingContent} onChange={(event) => setEditingContent(event.target.value)} maxLength={2000} />
                           </div>
                           <div className="row-actions flex-wrap gap-3">
-                            <button
-                              className="button button-small transition-all duration-200"
-                              type="button"
-                              onClick={() => handleUpdateComment(comment.id)}
-                              disabled={isActionBusy}
-                            >
+                            <button className="button button-small transition-all duration-200" type="button" onClick={() => handleUpdateComment(comment.id)} disabled={isActionBusy}>
                               حفظ
                             </button>
-                            <button
-                              className="button ghost button-small transition-all duration-200"
-                              type="button"
-                              onClick={() => {
-                                setEditingId(null);
-                                setEditingContent("");
-                              }}
-                            >
+                            <button className="button ghost button-small transition-all duration-200" type="button" onClick={() => setEditingId(null)}>
                               إلغاء
                             </button>
                           </div>
@@ -609,12 +535,7 @@ export function VideoDetailsPage() {
                               تعديل
                             </button>
                           ) : null}
-
-                          <button
-                            className="button danger button-small transition-all duration-200"
-                            type="button"
-                            onClick={() => handleDeleteComment(comment.id)}
-                          >
+                          <button className="button danger button-small transition-all duration-200" type="button" onClick={() => handleDeleteComment(comment.id)}>
                             <Trash2 size={15} aria-hidden="true" />
                             حذف
                           </button>
@@ -628,7 +549,7 @@ export function VideoDetailsPage() {
           </div>
         </main>
 
-        <aside className="related-videos-panel">
+        <aside className="related-videos-panel overflow-x-hidden xl:sticky xl:top-20">
           <div className="related-videos-head">
             <h2>فيديوهات مقترحة</h2>
           </div>
@@ -639,7 +560,7 @@ export function VideoDetailsPage() {
               ))}
             </div>
           ) : (
-            <div className="empty-state compact-empty">لا توجد فيديوهات مقترحة حالياً.</div>
+            <div className="empty-state compact-empty">لا توجد فيديوهات مقترحة حاليا.</div>
           )}
         </aside>
       </div>
