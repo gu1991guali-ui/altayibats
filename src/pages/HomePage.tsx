@@ -9,20 +9,39 @@ import { fetchPlaylistsWithVideos, isSupabaseConfigured, supabase } from "@/lib/
 import type { PlaylistWithVideos, VideoRecord, VideoSummary } from "@/lib/types";
 import { enrichVideos } from "@/lib/video-utils";
 
+type HomePageCache = {
+  cacheKey: string;
+  videos: VideoSummary[];
+  playlists: PlaylistWithVideos[];
+};
+
+let homePageCache: HomePageCache | null = null;
+
 export function HomePage() {
   const { user, isLoading: authLoading } = useAuth();
-  const [videos, setVideos] = useState<VideoSummary[]>([]);
-  const [playlists, setPlaylists] = useState<PlaylistWithVideos[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const cacheKey = user ? "authenticated" : "anonymous";
+  const cachedHomePage = homePageCache?.cacheKey === cacheKey ? homePageCache : null;
+  const [videos, setVideos] = useState<VideoSummary[]>(cachedHomePage?.videos ?? []);
+  const [playlists, setPlaylists] = useState<PlaylistWithVideos[]>(cachedHomePage?.playlists ?? []);
+  const [isLoading, setIsLoading] = useState(!cachedHomePage);
   const [error, setError] = useState("");
 
-  const loadVideos = useCallback(async () => {
+  const loadVideos = useCallback(async (force = false) => {
+    const cached = homePageCache?.cacheKey === cacheKey ? homePageCache : null;
+
+    if (cached && !force) {
+      setVideos(cached.videos);
+      setPlaylists(cached.playlists);
+      setIsLoading(false);
+      return;
+    }
+
     if (!isSupabaseConfigured) {
       setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading(!cached);
     setError("");
 
     const [videoResult, playlistResult] = await Promise.allSettled([
@@ -32,22 +51,26 @@ export function HomePage() {
 
     if (videoResult.status === "rejected" || videoResult.value.error) {
       setError("تعذر تحميل الفيديوهات. تحقق من إعدادات Supabase وقواعد الوصول.");
-      setVideos([]);
-      setPlaylists([]);
+      if (!cached) {
+        setVideos([]);
+        setPlaylists([]);
+      }
       setIsLoading(false);
       return;
     }
 
+    let nextPlaylists: PlaylistWithVideos[] = [];
+
     if (playlistResult.status === "fulfilled") {
-      setPlaylists(playlistResult.value);
-    } else {
-      setPlaylists([]);
+      nextPlaylists = playlistResult.value;
     }
 
     const enriched = await enrichVideos((videoResult.value.data ?? []) as VideoRecord[], Boolean(user));
+    homePageCache = { cacheKey, videos: enriched, playlists: nextPlaylists };
     setVideos(enriched);
+    setPlaylists(nextPlaylists);
     setIsLoading(false);
-  }, [user]);
+  }, [cacheKey, user]);
 
   useEffect(() => {
     if (!authLoading) {
@@ -89,7 +112,7 @@ export function HomePage() {
                 تسجيل الدخول
               </Link>
             )}
-            <button className="button secondary transition-all duration-200" type="button" onClick={loadVideos}>
+            <button className="button secondary transition-all duration-200" type="button" onClick={() => loadVideos(true)}>
               <RefreshCw size={16} aria-hidden="true" />
               تحديث القائمة
             </button>

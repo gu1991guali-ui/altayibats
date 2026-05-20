@@ -130,24 +130,38 @@ function SuggestedVideoCard({ video }: { video: VideoSummary }) {
   );
 }
 
+type VideoDetailsCache = {
+  video: VideoRecord;
+  videoUrl: string;
+  relatedVideos: VideoSummary[];
+  comments: CommentWithAuthor[];
+  likeCount: number;
+  commentCount: number;
+  liked: boolean;
+};
+
+const videoDetailsCache = new Map<string, VideoDetailsCache>();
+
 export function VideoDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const videoId = id ?? "";
+  const cacheKey = user ? `${videoId}:${user.id}` : "";
+  const cachedVideoDetails = cacheKey ? videoDetailsCache.get(cacheKey) : null;
 
-  const [video, setVideo] = useState<VideoRecord | null>(null);
-  const [videoUrl, setVideoUrl] = useState("");
-  const [relatedVideos, setRelatedVideos] = useState<VideoSummary[]>([]);
-  const [comments, setComments] = useState<CommentWithAuthor[]>([]);
-  const [likeCount, setLikeCount] = useState(0);
-  const [commentCount, setCommentCount] = useState(0);
-  const [liked, setLiked] = useState(false);
+  const [video, setVideo] = useState<VideoRecord | null>(cachedVideoDetails?.video ?? null);
+  const [videoUrl, setVideoUrl] = useState(cachedVideoDetails?.videoUrl ?? "");
+  const [relatedVideos, setRelatedVideos] = useState<VideoSummary[]>(cachedVideoDetails?.relatedVideos ?? []);
+  const [comments, setComments] = useState<CommentWithAuthor[]>(cachedVideoDetails?.comments ?? []);
+  const [likeCount, setLikeCount] = useState(cachedVideoDetails?.likeCount ?? 0);
+  const [commentCount, setCommentCount] = useState(cachedVideoDetails?.commentCount ?? 0);
+  const [liked, setLiked] = useState(cachedVideoDetails?.liked ?? false);
   const [selectedLanguage, setSelectedLanguage] = useState<SupportedLanguage>("ar");
   const [newComment, setNewComment] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!cachedVideoDetails);
   const [isActionBusy, setIsActionBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -164,15 +178,16 @@ export function VideoDetailsPage() {
       .limit(12);
 
     if (relatedError) {
-      setRelatedVideos([]);
-      return;
+      return [];
     }
 
     const enriched = await enrichVideos((data ?? []) as VideoRecord[]);
     const currentCategory = getVideoCategory(currentVideo);
     const sameCategory = enriched.filter((item) => getVideoCategory(item) === currentCategory);
     const fallback = enriched.filter((item) => getVideoCategory(item) !== currentCategory);
-    setRelatedVideos((sameCategory.length > 0 ? [...sameCategory, ...fallback] : enriched).slice(0, 8));
+    const nextRelatedVideos = (sameCategory.length > 0 ? [...sameCategory, ...fallback] : enriched).slice(0, 8);
+    setRelatedVideos(nextRelatedVideos);
+    return nextRelatedVideos;
   }, []);
 
   const loadComments = useCallback(async () => {
@@ -196,13 +211,17 @@ export function VideoDetailsPage() {
       ((profileRows ?? []) as PublicProfile[]).forEach((profile) => profiles.set(profile.id, profile));
     }
 
-    setComments(rows.map((comment) => ({ ...comment, author: profiles.get(comment.user_id) ?? null })));
+    const nextComments = rows.map((comment) => ({ ...comment, author: profiles.get(comment.user_id) ?? null }));
+    setComments(nextComments);
+    return nextComments;
   }, [videoId]);
 
   const loadEngagement = useCallback(async () => {
     const [likes, commentTotal] = await Promise.all([countRows("likes", videoId), countRows("comments", videoId)]);
     setLikeCount(likes);
     setCommentCount(commentTotal);
+
+    let nextLiked = false;
 
     if (user) {
       const { data } = await supabase
@@ -211,16 +230,33 @@ export function VideoDetailsPage() {
         .eq("video_id", videoId)
         .eq("user_id", user.id)
         .maybeSingle();
-      setLiked(Boolean(data));
+      nextLiked = Boolean(data);
+      setLiked(nextLiked);
     }
+
+    return { likeCount: likes, commentCount: commentTotal, liked: nextLiked };
   }, [user, videoId]);
 
-  const loadVideo = useCallback(async () => {
+  const loadVideo = useCallback(async (force = false) => {
     if (!videoId || !user) {
       return;
     }
 
-    setIsLoading(true);
+    const cached = videoDetailsCache.get(`${videoId}:${user.id}`);
+
+    if (cached && !force) {
+      setVideo(cached.video);
+      setVideoUrl(cached.videoUrl);
+      setRelatedVideos(cached.relatedVideos);
+      setComments(cached.comments);
+      setLikeCount(cached.likeCount);
+      setCommentCount(cached.commentCount);
+      setLiked(cached.liked);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(!cached);
     setError("");
 
     const { data, error: videoError } = await supabase.from("videos").select("*").eq("id", videoId).maybeSingle<VideoRecord>();
@@ -231,19 +267,20 @@ export function VideoDetailsPage() {
       return;
     }
 
-    const { data: signedVideo, error: signedUrlError } = await supabase.storage
-      .from("videos")
-      .createSignedUrl(data.video_path, 60 * 60);
-
-    if (signedUrlError || !signedVideo?.signedUrl) {
-      setError("تعذر تجهيز رابط تشغيل الفيديو.");
-      setIsLoading(false);
-      return;
-    }
+    const publicVideoUrl = supabase.storage.from("videos").getPublicUrl(data.video_path).data.publicUrl;
 
     setVideo(data);
-    setVideoUrl(signedVideo.signedUrl);
-    await Promise.all([loadComments(), loadEngagement(), loadRelatedVideos(data)]);
+    setVideoUrl(publicVideoUrl);
+    const [nextComments, nextEngagement, nextRelatedVideos] = await Promise.all([loadComments(), loadEngagement(), loadRelatedVideos(data)]);
+    videoDetailsCache.set(`${videoId}:${user.id}`, {
+      video: data,
+      videoUrl: publicVideoUrl,
+      relatedVideos: nextRelatedVideos,
+      comments: nextComments ?? [],
+      likeCount: nextEngagement.likeCount,
+      commentCount: nextEngagement.commentCount,
+      liked: nextEngagement.liked
+    });
     setIsLoading(false);
   }, [loadComments, loadEngagement, loadRelatedVideos, user, videoId]);
 
@@ -284,7 +321,13 @@ export function VideoDetailsPage() {
       return;
     }
 
-    await loadEngagement();
+    const nextEngagement = await loadEngagement();
+    if (cacheKey) {
+      const cached = videoDetailsCache.get(cacheKey);
+      if (cached) {
+        videoDetailsCache.set(cacheKey, { ...cached, ...nextEngagement });
+      }
+    }
   }
 
   async function handleAddComment(event: FormEvent<HTMLFormElement>) {
@@ -314,7 +357,13 @@ export function VideoDetailsPage() {
     }
 
     setNewComment("");
-    await Promise.all([loadComments(), loadEngagement()]);
+    const [nextComments, nextEngagement] = await Promise.all([loadComments(), loadEngagement()]);
+    if (cacheKey) {
+      const cached = videoDetailsCache.get(cacheKey);
+      if (cached) {
+        videoDetailsCache.set(cacheKey, { ...cached, comments: nextComments ?? cached.comments, ...nextEngagement });
+      }
+    }
   }
 
   async function handleUpdateComment(commentId: string) {
@@ -338,7 +387,13 @@ export function VideoDetailsPage() {
 
     setEditingId(null);
     setEditingContent("");
-    await loadComments();
+    const nextComments = await loadComments();
+    if (cacheKey) {
+      const cached = videoDetailsCache.get(cacheKey);
+      if (cached) {
+        videoDetailsCache.set(cacheKey, { ...cached, comments: nextComments ?? cached.comments });
+      }
+    }
   }
 
   async function handleDeleteComment(commentId: string) {
@@ -357,7 +412,13 @@ export function VideoDetailsPage() {
       return;
     }
 
-    await Promise.all([loadComments(), loadEngagement()]);
+    const [nextComments, nextEngagement] = await Promise.all([loadComments(), loadEngagement()]);
+    if (cacheKey) {
+      const cached = videoDetailsCache.get(cacheKey);
+      if (cached) {
+        videoDetailsCache.set(cacheKey, { ...cached, comments: nextComments ?? cached.comments, ...nextEngagement });
+      }
+    }
   }
 
   if (!isSupabaseConfigured) {

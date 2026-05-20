@@ -15,6 +15,13 @@ type AdminPlaylist = PlaylistRecord & {
   items: AdminPlaylistItem[];
 };
 
+type AdminPageCache = {
+  videos: VideoSummary[];
+  playlists: AdminPlaylist[];
+};
+
+let adminPageCache: AdminPageCache | null = null;
+
 function randomId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return crypto.randomUUID();
@@ -42,8 +49,8 @@ async function uploadObject(bucket: "videos" | "thumbnails", path: string, file:
 export function AdminPage() {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading: authLoading } = useAuth();
-  const [videos, setVideos] = useState<VideoSummary[]>([]);
-  const [playlists, setPlaylists] = useState<AdminPlaylist[]>([]);
+  const [videos, setVideos] = useState<VideoSummary[]>(adminPageCache?.videos ?? []);
+  const [playlists, setPlaylists] = useState<AdminPlaylist[]>(adminPageCache?.playlists ?? []);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [videoType, setVideoType] = useState<VideoType>("long");
@@ -62,36 +69,52 @@ export function AdminPage() {
   const [editPlaylistDescription, setEditPlaylistDescription] = useState("");
   const [selectedVideos, setSelectedVideos] = useState<Record<string, string>>({});
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(!adminPageCache);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const loadVideos = useCallback(async () => {
-    if (!isSupabaseConfigured || !isAdmin) {
+  const loadVideos = useCallback(async (force = false) => {
+    if (adminPageCache && !force) {
+      setVideos(adminPageCache.videos);
       setIsLoading(false);
-      return;
+      return adminPageCache.videos;
     }
 
-    setIsLoading(true);
+    if (!isSupabaseConfigured || !isAdmin) {
+      setIsLoading(false);
+      return [];
+    }
+
+    setIsLoading(!adminPageCache);
     setError("");
 
     const { data, error: videosError } = await supabase.from("videos").select("*").order("created_at", { ascending: false });
 
     if (videosError) {
       setError("تعذر تحميل قائمة الفيديوهات.");
-      setVideos([]);
+      if (!adminPageCache) {
+        setVideos([]);
+      }
       setIsLoading(false);
-      return;
+      return [];
     }
 
-    setVideos(await enrichVideos((data ?? []) as VideoRecord[]));
+    const nextVideos = await enrichVideos((data ?? []) as VideoRecord[]);
+    setVideos(nextVideos);
+    adminPageCache = { videos: nextVideos, playlists: adminPageCache?.playlists ?? [] };
     setIsLoading(false);
+    return nextVideos;
   }, [isAdmin]);
 
-  const loadPlaylists = useCallback(async () => {
+  const loadPlaylists = useCallback(async (force = false) => {
+    if (adminPageCache && !force) {
+      setPlaylists(adminPageCache.playlists);
+      return adminPageCache.playlists;
+    }
+
     if (!isSupabaseConfigured || !isAdmin) {
-      return;
+      return [];
     }
 
     const { data: playlistRows, error: playlistsError } = await supabase
@@ -100,15 +123,18 @@ export function AdminPage() {
       .order("created_at", { ascending: false });
 
     if (playlistsError) {
-      setPlaylists([]);
-      return;
+      if (!adminPageCache) {
+        setPlaylists([]);
+      }
+      return [];
     }
 
     const playlistRecords = (playlistRows ?? []) as PlaylistRecord[];
 
     if (playlistRecords.length === 0) {
       setPlaylists([]);
-      return;
+      adminPageCache = { videos: adminPageCache?.videos ?? [], playlists: [] };
+      return [];
     }
 
     const { data: joinRows, error: joinsError } = await supabase
@@ -118,8 +144,10 @@ export function AdminPage() {
       .order("position", { ascending: true });
 
     if (joinsError) {
-      setPlaylists(playlistRecords.map((playlist) => ({ ...playlist, items: [] })));
-      return;
+      const nextPlaylists = playlistRecords.map((playlist) => ({ ...playlist, items: [] }));
+      setPlaylists(nextPlaylists);
+      adminPageCache = { videos: adminPageCache?.videos ?? [], playlists: nextPlaylists };
+      return nextPlaylists;
     }
 
     const joins = (joinRows ?? []) as PlaylistVideoRecord[];
@@ -131,20 +159,26 @@ export function AdminPage() {
       (await enrichVideos((videoRows ?? []) as VideoRecord[])).forEach((video) => videoMap.set(video.id, video));
     }
 
-    setPlaylists(
-      playlistRecords.map((playlist) => ({
-        ...playlist,
-        items: joins
-          .filter((join) => join.playlist_id === playlist.id)
-          .sort((first, second) => first.position - second.position)
-          .map((join) => ({ ...join, video: videoMap.get(join.video_id) ?? null }))
-      }))
-    );
+    const nextPlaylists = playlistRecords.map((playlist) => ({
+      ...playlist,
+      items: joins
+        .filter((join) => join.playlist_id === playlist.id)
+        .sort((first, second) => first.position - second.position)
+        .map((join) => ({ ...join, video: videoMap.get(join.video_id) ?? null }))
+    }));
+
+    setPlaylists(nextPlaylists);
+    adminPageCache = { videos: adminPageCache?.videos ?? [], playlists: nextPlaylists };
+    return nextPlaylists;
   }, [isAdmin]);
 
-  const reloadAll = useCallback(async () => {
-    await Promise.all([loadVideos(), loadPlaylists()]);
-  }, [loadPlaylists, loadVideos]);
+  const reloadAll = useCallback(async (force = false) => {
+    const [nextVideos, nextPlaylists] = await Promise.all([loadVideos(force), loadPlaylists(force)]);
+
+    if (isSupabaseConfigured && isAdmin) {
+      adminPageCache = { videos: nextVideos, playlists: nextPlaylists };
+    }
+  }, [isAdmin, loadPlaylists, loadVideos]);
 
   useEffect(() => {
     if (isSupabaseConfigured && !authLoading && !user) {
@@ -217,7 +251,7 @@ export function AdminPage() {
       setThumbnailFile(null);
       setFormKey((value) => value + 1);
       setMessage("تم رفع الفيديو بنجاح.");
-      await reloadAll();
+      await reloadAll(true);
     } catch (uploadError) {
       if (videoPath) {
         await supabase.storage.from("videos").remove([videoPath]);
@@ -287,7 +321,7 @@ export function AdminPage() {
 
       setEditing(null);
       setMessage("تم تحديث بيانات الفيديو.");
-      await reloadAll();
+      await reloadAll(true);
     } catch (updateError) {
       setError(errorMessage(updateError));
     } finally {
@@ -319,7 +353,7 @@ export function AdminPage() {
     }
 
     setMessage("تم حذف الفيديو.");
-    await reloadAll();
+    await reloadAll(true);
     setIsSaving(false);
   }
 
@@ -351,7 +385,7 @@ export function AdminPage() {
     setPlaylistTitle("");
     setPlaylistDescription("");
     setMessage("تم إنشاء قائمة التشغيل.");
-    await loadPlaylists();
+    await loadPlaylists(true);
   }
 
   async function handleDeletePlaylist(playlistId: string) {
@@ -369,7 +403,7 @@ export function AdminPage() {
     }
 
     setMessage("تم حذف قائمة التشغيل.");
-    await loadPlaylists();
+    await loadPlaylists(true);
   }
 
   function startPlaylistEdit(playlist: AdminPlaylist) {
@@ -411,7 +445,7 @@ export function AdminPage() {
     setEditPlaylistTitle("");
     setEditPlaylistDescription("");
     setMessage("تم تعديل قائمة التشغيل.");
-    await loadPlaylists();
+    await loadPlaylists(true);
   }
 
   async function handleAddPlaylistVideo(playlist: AdminPlaylist) {
@@ -441,7 +475,7 @@ export function AdminPage() {
     }
 
     setSelectedVideos((value) => ({ ...value, [playlist.id]: "" }));
-    await loadPlaylists();
+    await loadPlaylists(true);
   }
 
   async function handleRemovePlaylistVideo(itemId: string) {
@@ -454,7 +488,7 @@ export function AdminPage() {
       return;
     }
 
-    await loadPlaylists();
+    await loadPlaylists(true);
   }
 
   async function reorderPlaylist(playlist: AdminPlaylist, targetItemId: string) {
@@ -485,7 +519,7 @@ export function AdminPage() {
       return;
     }
 
-    await loadPlaylists();
+    await loadPlaylists(true);
   }
 
   if (!isSupabaseConfigured) {
@@ -594,7 +628,7 @@ export function AdminPage() {
                 <h2>قوائم التشغيل</h2>
                 <p>{playlists.length} قائمة قابلة للترتيب بالسحب والإفلات.</p>
               </div>
-              <button className="button secondary button-small transition-all duration-200" type="button" onClick={reloadAll}>
+              <button className="button secondary button-small transition-all duration-200" type="button" onClick={() => reloadAll(true)}>
                 <RefreshCw size={16} aria-hidden="true" />
                 تحديث
               </button>
