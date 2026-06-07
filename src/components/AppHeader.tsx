@@ -1,17 +1,9 @@
-import {
-  Home,
-  LogIn,
-  LogOut,
-  Shield,
-  UserCircle,
-  UserPlus,
-  Video
-} from "lucide-react";
+import { Home, LogOut, PlayCircle, Shield, Video } from "lucide-react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 
 const navClass = ({ isActive }: { isActive: boolean }) =>
-  isActive ? "nav-link active" : "nav-link";
+  isActive ? "nav-link active desktop-nav-link" : "nav-link desktop-nav-link";
 
 export function AppHeader() {
   const navigate = useNavigate();
@@ -37,38 +29,27 @@ export function AppHeader() {
           الرئيسية
         </NavLink>
 
-        {!isLoading && user ? (
-          <>
-            <NavLink className={navClass} to="/account">
-              <UserCircle size={17} aria-hidden="true" />
-              الحساب
-            </NavLink>
+        <a className="nav-link nav-cta" href="/#latest-videos">
+          <PlayCircle size={17} aria-hidden="true" />
+          شاهد الآن
+        </a>
 
-            {isAdmin ? (
-              <NavLink className={navClass} to="/admin">
-                <Shield size={17} aria-hidden="true" />
-                الإدارة
-              </NavLink>
-            ) : null}
+        <a className="nav-link desktop-nav-link" href="/#tayyibat-allowed">
+          الطيبات المسموحة
+        </a>
 
-            <button className="nav-button" type="button" onClick={handleSignOut}>
-              <LogOut size={17} aria-hidden="true" />
-              خروج
-            </button>
-          </>
+        {!isLoading && isAdmin ? (
+          <NavLink className={navClass} to="/admin">
+            <Shield size={17} aria-hidden="true" />
+            الإدارة
+          </NavLink>
         ) : null}
 
-        {!isLoading && !user ? (
-          <>
-            <NavLink className={navClass} to="/login">
-              <LogIn size={17} aria-hidden="true" />
-              دخول
-            </NavLink>
-            <Link className="button button-small" to="/register">
-              <UserPlus size={16} aria-hidden="true" />
-              حساب جديد
-            </Link>
-          </>
+        {!isLoading && user ? (
+          <button className="nav-button desktop-nav-link" type="button" onClick={handleSignOut}>
+            <LogOut size={17} aria-hidden="true" />
+            خروج
+          </button>
         ) : null}
       </nav>
     </header>

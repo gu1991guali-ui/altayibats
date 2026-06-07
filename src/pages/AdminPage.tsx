@@ -34,6 +34,11 @@ function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "حدث خطأ غير متوقع.";
 }
 
+function databaseSetupMessage(action: string, details?: string) {
+  const suffix = details ? ` التفاصيل التقنية: ${details}` : "";
+  return `${action} شغّل ملف database/01_REPAIR_PLAYLISTS_SCHEMA_CACHE.sql من Supabase SQL Editor، ثم أعد تحميل صفحة الإدارة واضغط تحديث.${suffix}`;
+}
+
 async function uploadObject(bucket: "videos" | "thumbnails", path: string, file: File) {
   const { error } = await supabase.storage.from(bucket).upload(path, file, {
     cacheControl: "3600",
@@ -126,6 +131,7 @@ export function AdminPage() {
       if (!adminPageCache) {
         setPlaylists([]);
       }
+      setError(databaseSetupMessage("تعذر تحميل قوائم التشغيل.", playlistsError.message));
       return [];
     }
 
@@ -147,6 +153,7 @@ export function AdminPage() {
       const nextPlaylists = playlistRecords.map((playlist) => ({ ...playlist, items: [] }));
       setPlaylists(nextPlaylists);
       adminPageCache = { videos: adminPageCache?.videos ?? [], playlists: nextPlaylists };
+      setError(databaseSetupMessage("تعذر تحميل عناصر قوائم التشغيل.", joinsError.message));
       return nextPlaylists;
     }
 
@@ -371,20 +378,19 @@ export function AdminPage() {
 
     const { error: insertError } = await supabase.from("playlists").insert({
       title: playlistTitle.trim(),
-      description: playlistDescription.trim() || null,
-      created_by: user.id
+      description: playlistDescription.trim() || null
     });
 
     setIsSaving(false);
 
     if (insertError) {
-      setError("تعذر إنشاء قائمة التشغيل. تأكد من تشغيل ترحيل جداول playlists.");
+      setError(databaseSetupMessage("تعذر إنشاء قائمة التشغيل.", insertError.message));
       return;
     }
 
     setPlaylistTitle("");
     setPlaylistDescription("");
-    setMessage("تم إنشاء قائمة التشغيل.");
+    setMessage("تم إنشاء قائمة التشغيل. أضف إليها فيديو واحداً على الأقل حتى تظهر في الصفحة الرئيسية.");
     await loadPlaylists(true);
   }
 
@@ -398,7 +404,7 @@ export function AdminPage() {
     setIsSaving(false);
 
     if (deleteError) {
-      setError("تعذر حذف قائمة التشغيل.");
+      setError(databaseSetupMessage("تعذر حذف قائمة التشغيل.", deleteError.message));
       return;
     }
 
@@ -437,7 +443,7 @@ export function AdminPage() {
     setIsSaving(false);
 
     if (updateError) {
-      setError("تعذر تعديل قائمة التشغيل.");
+      setError(databaseSetupMessage("تعذر تعديل قائمة التشغيل.", updateError.message));
       return;
     }
 
@@ -470,11 +476,13 @@ export function AdminPage() {
     setIsSaving(false);
 
     if (insertError) {
-      setError("تعذر إضافة الفيديو. قد يكون موجودا في القائمة مسبقا.");
+      const duplicateHint = insertError.code === "23505" ? " هذا الفيديو موجود في القائمة مسبقاً." : "";
+      setError(`${databaseSetupMessage("تعذر إضافة الفيديو إلى قائمة التشغيل.", insertError.message)}${duplicateHint}`);
       return;
     }
 
     setSelectedVideos((value) => ({ ...value, [playlist.id]: "" }));
+    setMessage("تمت إضافة الفيديو إلى قائمة التشغيل. ستظهر القائمة في الصفحة الرئيسية بعد تحديثها.");
     await loadPlaylists(true);
   }
 
@@ -484,7 +492,7 @@ export function AdminPage() {
     setIsSaving(false);
 
     if (deleteError) {
-      setError("تعذر إزالة الفيديو من القائمة.");
+      setError(databaseSetupMessage("تعذر إزالة الفيديو من القائمة.", deleteError.message));
       return;
     }
 
@@ -715,6 +723,11 @@ export function AdminPage() {
                   </div>
 
                   <div className="playlist-sort-list">
+                    {playlist.items.length === 0 ? (
+                      <div className="empty-state compact-empty playlist-admin-note">
+                        هذه القائمة لن تظهر في الصفحة الرئيسية حتى تضيف إليها فيديو واحداً على الأقل.
+                      </div>
+                    ) : null}
                     {playlist.items.map((item) => (
                       <div
                         className="playlist-sort-row"
@@ -750,8 +763,8 @@ export function AdminPage() {
               {videos.length === 0 ? <div className="empty-state">لا توجد فيديوهات.</div> : null}
               {videos.map((video) => (
                 <article className="admin-video-row" key={video.id}>
-                  <div className={`admin-thumb ${video.video_type === "short" ? "short" : "long"}`}>
-                    {video.thumbnail_url ? <img src={video.thumbnail_url} alt="" /> : null}
+                  <div className={`admin-thumb ${video.video_type === "short" ? "short aspect-[9/16]" : "long aspect-video"}`}>
+                    {video.thumbnail_url ? <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" /> : null}
                   </div>
                   <div className="admin-row-body">
                     <h3>{video.title}</h3>

@@ -1,6 +1,5 @@
-import { Lock, RefreshCw, ShieldCheck, Sparkles, UploadCloud } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Ban, CheckCircle2, Coffee, Droplets, Fish, Leaf, PlayCircle, RefreshCw, Sparkles, Wheat } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StatusMessage } from "@/components/StatusMessage";
 import { useAuth } from "@/components/AuthProvider";
 import { Playlist } from "@/components/Playlist";
@@ -24,33 +23,31 @@ const achievementStats = [
   { label: "خدمات", value: 6 }
 ];
 
-const TAYYIBAT_SLIDE_DELAY_MS = 6000;
-
 const tayyibatSlides = [
   {
-    badge: "التعريف",
+    badge: "البداية الصحيحة",
     title: "نظام الطيبات",
     description:
-      "نظام غذائي متكامل وضعه الدكتور ضياء العوضي رحمه الله، يقوم على تناول الطيبات واجتناب الخبائث، وتنظيم وقت الأكل بما يخفف العبء عن الجسم.",
+      "نظام غذائي متكامل وضعه الدكتور ضياء العوضي رحمه الله، يقوم على تناول الطيبات واجتناب الخبائث.",
     highlight: "تناول الطيبات واجتناب الخبائث",
-    chips: ["منهج غذائي", "أكل عند الجوع", "راحة للجهاز الهضمي"],
+    chips: ["منهج غذائي", "وعي بالجسم", "اختيار نظيف"],
     tone: "green"
   },
   {
-    badge: "القاعدة الذهبية",
-    title: "كُل فقط لما تجوع.. وتوقف قبل ما تشبع",
+    badge: "أصل النظام",
+    title: "القاعدة الذهبية",
     description:
-      "هذه هي القاعدة التي أكد عليها الدكتور ضياء العوضي رحمه الله في محاضراته: لا تبدأ الطعام إلا عند الجوع الحقيقي، ولا تستمر حتى الامتلاء.",
-    highlight: "الجوع الحقيقي قبل الطعام.. والتوقف قبل الشبع",
-    chips: ["جوع حقيقي", "توقف قبل الشبع", "راحة بين الوجبات"],
+      "كُل فقط لما تجوع.. وتوقف قبل ما تشبع. هذه القاعدة تضبط وقت الأكل وكميته، وتمنح الجهاز الهضمي راحة كافية بين الوجبات.",
+    highlight: "كُل فقط لما تجوع",
+    chips: ["جوع حقيقي", "توقف مبكر", "راحة للهضم"],
     tone: "emerald"
   },
   {
-    badge: "الطيبات",
-    title: "الأطعمة الطيبة",
+    badge: "المسموحات الأساسية",
+    title: "الطيبات",
     description:
-      "من أبرز الطيبات في النظام: الأرز، البطاطس، التمر، العسل، زيت الزيتون، السمن البلدي، القهوة، والشاي الأخضر.",
-    highlight: "أطعمة بسيطة وواضحة المصدر",
+      "الأرز، البطاطس، التمر، العسل، زيت الزيتون، السمن البلدي، القهوة، والشاي الأخضر من أبرز الطيبات في النظام.",
+    highlight: "أطعمة واضحة وبسيطة",
     chips: ["أرز", "بطاطس", "تمر", "عسل", "زيت زيتون"],
     tone: "gold"
   },
@@ -58,8 +55,8 @@ const tayyibatSlides = [
     badge: "باعتدال",
     title: "البروتينات المسموحة",
     description:
-      "يسمح النظام ببعض البروتينات مثل لحم الضأن، لحم الجمل، الأرانب، الحمام، السمان، والسمك البحري البري، على أن تؤكل باعتدال لا بشكل يومي.",
-    highlight: "مسموحة باعتدال وليست طعاماً يومياً",
+      "لحم الضأن، لحم الجمل، الأرانب، الحمام، السمان، والسمك البحري البري. تؤكل هذه البروتينات باعتدال وليست بشكل يومي.",
+    highlight: "تؤكل باعتدال وليس يوميا",
     chips: ["ضأن", "جمل", "أرانب", "سمك بحري"],
     tone: "orange"
   },
@@ -67,10 +64,49 @@ const tayyibatSlides = [
     badge: "اجتناب الخبائث",
     title: "الخبائث الممنوعة",
     description:
-      "من أبرز الممنوعات: الدقيق الأبيض وكل ما يصنع منه، البيض، الدجاج بكل أنواعه، اللبن ومشتقاته، كل الخضار الورقية، البصل، والثوم.",
-    highlight: "الاجتناب أوضح من التخفيف",
+      "الدقيق الأبيض وكل ما يصنع منه، البيض، الدجاج بكل أنواعه، اللبن ومشتقاته، كل الخضار الورقية، البصل، والثوم.",
+    highlight: "منع واضح بدون تداخل",
     chips: ["دقيق أبيض", "بيض", "دجاج", "لبن", "ورقيات"],
     tone: "red"
+  }
+];
+
+
+const allowedFoodGroups = [
+  {
+    title: "الحبوب والنشويات",
+    description: "مصادر طاقة بسيطة وواضحة ضمن اختيارات الطيبات.",
+    items: ["الأرز", "البطاطس", "البطاطا", "الذرة"],
+    tone: "allowed",
+    icon: <Wheat size={24} aria-hidden="true" />
+  },
+  {
+    title: "الدهون الطيبة",
+    description: "دهون طبيعية بأصل واضح وتستخدم باعتدال.",
+    items: ["زيت الزيتون", "السمن البلدي", "زيت جوز الهند"],
+    tone: "gold",
+    icon: <Droplets size={24} aria-hidden="true" />
+  },
+  {
+    title: "المشروبات",
+    description: "مشروبات هادئة بعيدة عن التعقيد والإضافات.",
+    items: ["الماء", "القهوة", "الشاي الأخضر", "الأعشاب"],
+    tone: "earth",
+    icon: <Coffee size={24} aria-hidden="true" />
+  },
+  {
+    title: "البروتينات",
+    description: "اختيارات بروتينية تؤكل باعتدال وليس بشكل يومي.",
+    items: ["لحم الضأن", "لحم الجمل", "السمك البحري", "الأرانب"],
+    tone: "allowed",
+    icon: <Fish size={24} aria-hidden="true" />
+  },
+  {
+    title: "اجتناب الخبائث",
+    description: "تنبيه بصري سريع للعناصر التي يجب الابتعاد عنها.",
+    items: ["الدقيق الأبيض", "الدجاج", "البيض", "الألبان", "الورقيات"],
+    tone: "danger",
+    icon: <Ban size={24} aria-hidden="true" />
   }
 ];
 
@@ -155,139 +191,137 @@ function TayyibatSlider({
   );
 }
 
-function formatCounterValue(value: number) {
-  return value.toLocaleString("ar-SA");
+
+function GoldenPlateIcon() {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <circle cx="32" cy="32" r="19" />
+      <circle cx="32" cy="32" r="10" />
+      <path d="M13 13v18" />
+      <path d="M18 13v18" />
+      <path d="M13 22h5" />
+      <path d="M49 13v38" />
+      <path d="M45 13c7 7 7 15 0 22" />
+    </svg>
+  );
 }
 
+function GoldenStomachIcon() {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path d="M35 8c-2 7 1 12 8 15 9 4 12 13 8 22-4 10-16 14-27 11-10-3-16-12-14-22 1-7 6-12 13-14 6-2 8-5 8-12" />
+      <path d="M28 22c5 7 3 14-5 19" />
+      <path d="M41 34c-4-4-9-4-14 0" />
+    </svg>
+  );
+}
 
-type AllowedTayyibatKey =
-  | "rice"
-  | "potato"
-  | "wheat"
-  | "dates"
-  | "honey"
-  | "oliveOil"
-  | "ghee"
-  | "coffee"
-  | "greenTea";
+function GoldenDigestionIcon() {
+  return (
+    <svg viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <path d="M32 52s-20-11-20-26c0-7 5-12 12-12 4 0 7 2 8 5 1-3 4-5 8-5 7 0 12 5 12 12 0 15-20 26-20 26Z" />
+      <path d="M24 30c5-5 11-5 16 0" />
+      <path d="M24 38c5 4 11 4 16 0" />
+    </svg>
+  );
+}
 
-type AllowedTayyibatItem = {
-  key: AllowedTayyibatKey;
-  title: string;
-  description: string;
-};
-
-const allowedTayyibatItems: AllowedTayyibatItem[] = [
+const goldenRulePrinciples = [
   {
-    key: "rice",
-    title: "الأرز",
-    description:
-      "من الطيبات الأساسية في النظام، وهو طعام بسيط وواضح يؤكل عند الجوع الحقيقي وبكمية لا تصل إلى الامتلاء."
+    number: "01",
+    text: "تأكل فقط عند الجوع الحقيقي",
+    icon: <GoldenPlateIcon />
   },
   {
-    key: "potato",
-    title: "البطاطس",
-    description:
-      "تدخل ضمن الأطعمة المسموحة والبسيطة، وتناسب مبدأ الوجبة الواضحة غير المركبة عند الالتزام بالتوقف قبل الشبع."
+    number: "02",
+    text: "تتوقف عن الأكل قبل أن تشبع",
+    icon: <GoldenStomachIcon />
   },
   {
-    key: "wheat",
-    title: "البر",
-    description:
-      "يقصد به القمح الكامل الطبيعي غير المكرر، ويعرض هنا ضمن الطيبات عندما يكون بعيداً عن الدقيق الأبيض ومصنعاته."
-  },
-  {
-    key: "dates",
-    title: "التمر",
-    description:
-      "من الطيبات المباركة والواضحة، ويؤكل باعتدال دون تحويله إلى أكل متكرر يكسر راحة الجهاز الهضمي بين الوجبات."
-  },
-  {
-    key: "honey",
-    title: "العسل",
-    description:
-      "من الطيبات المركزة، لذلك يكون استخدامه بقدر مناسب مع احترام قاعدة الجوع الحقيقي وعدم المبالغة."
-  },
-  {
-    key: "oliveOil",
-    title: "زيت الزيتون",
-    description:
-      "من الدهون الطيبة في النظام، ويستخدم مع الطعام ببساطة واعتدال دون خلطات كثيرة تثقل الهضم."
-  },
-  {
-    key: "ghee",
-    title: "السمن البلدي",
-    description:
-      "من الدهون المسموحة، والمهم أن يؤخذ بقدر مناسب مع الوجبة لا كسبب للإكثار أو الوصول إلى الثقل."
-  },
-  {
-    key: "coffee",
-    title: "القهوة",
-    description:
-      "من المشروبات المسموحة، بشرط ألا تتحول إلى عادة مستمرة تربك إشارات الجوع أو تكسر فترات الراحة."
-  },
-  {
-    key: "greenTea",
-    title: "الشاي الأخضر",
-    description:
-      "مشروب مسموح ضمن إطار البساطة، والأفضل تناوله باعتدال دون إفراط أو اعتماد دائم بين الوجبات."
+    number: "03",
+    text: "تعطي جهازك الهضمي راحة كافية بين الوجبات",
+    icon: <GoldenDigestionIcon />
   }
 ];
 
-type AllowedTayyibatSectionProps = {
-  openItem: AllowedTayyibatKey | null;
-  onToggle: (key: AllowedTayyibatKey) => void;
-};
-
-function AllowedTayyibatSection({ openItem, onToggle }: AllowedTayyibatSectionProps) {
+function GoldenRuleHero() {
   return (
-    <section className="allowed-tayyibat-section" aria-label="الطيبات المسموحة">
-      <div className="allowed-tayyibat-card">
-        <div className="allowed-tayyibat-head">
-          <span className="allowed-tayyibat-kicker">
-            <Sparkles size={15} aria-hidden="true" />
-            الطيبات المسموحة
+    <section className="golden-rule-hero" dir="rtl" aria-label="القاعدة الذهبية في نظام الطيبات">
+      <div className="golden-rule-hero__shell">
+        <div className="golden-rule-hero__content">
+          <span className="golden-rule-hero__badge">
+            <Sparkles size={18} aria-hidden="true" />
+            القاعدة الذهبية
           </span>
-          <h2>اختر كلمة لمعرفة شرحها</h2>
-          <p>هذه العناصر من الطيبات المذكورة في النظام، اضغط على أي عنصر لعرض شرحه مباشرة تحته.</p>
+
+          <h1 className="golden-rule-hero__title">
+            كُل فقط لما تجوع..
+            <br />
+            وتوقف قبل ما تشبع
+          </h1>
+
+          <p className="golden-rule-hero__subtitle">
+            هذه هي القاعدة الذهبية التي أكد عليها الدكتور ضياء العوضي رحمه الله في كل محاضراته.
+          </p>
+
+          <div className="golden-rule-hero__divider" aria-hidden="true">
+            <span />
+          </div>
         </div>
 
-        <div className="allowed-tayyibat-grid">
-          {allowedTayyibatItems.map((item) => {
-            const isOpen = openItem === item.key;
-
-            return (
-              <div className={`allowed-tayyibat-item ${isOpen ? "is-open" : ""}`} key={item.key}>
-                <button
-                  className="allowed-tayyibat-button"
-                  type="button"
-                  onClick={() => onToggle(item.key)}
-                  aria-expanded={isOpen}
-                  aria-controls={`allowed-tayyibat-${item.key}`}
-                >
-                  <span>{item.title}</span>
-                  <span className="allowed-tayyibat-plus" aria-hidden="true">
-                    {isOpen ? "−" : "+"}
-                  </span>
-                </button>
-
-                <div
-                  id={`allowed-tayyibat-${item.key}`}
-                  className="allowed-tayyibat-explanation"
-                  aria-hidden={!isOpen}
-                >
-                  <div className="allowed-tayyibat-explanation-inner">
-                    <strong>{item.title}</strong>
-                    <p>{item.description}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+        <div className="golden-rule-hero__cards" aria-label="مبادئ القاعدة الذهبية">
+          {goldenRulePrinciples.map((principle) => (
+            <article className="golden-rule-hero__card" key={principle.number}>
+              <div className="golden-rule-hero__icon">{principle.icon}</div>
+              <strong className="golden-rule-hero__number">{principle.number}</strong>
+              <p>{principle.text}</p>
+            </article>
+          ))}
         </div>
       </div>
     </section>
   );
+}
+
+
+
+function AllowedFoodsSection() {
+  return (
+    <section id="tayyibat-allowed" className="tayyibat-allowed-section" aria-label="الطيبات المسموحة">
+      <div className="section-head">
+        <div>
+          <span className="eyebrow">
+            <Leaf size={16} aria-hidden="true" />
+            دليل طبيعي سريع
+          </span>
+          <h2>الطيبات المسموحة</h2>
+          <p>بطاقات مختصرة تساعد الزائر على فهم الاختيارات الأساسية بسرعة وهدوء.</p>
+        </div>
+      </div>
+
+      <div className="tayyibat-allowed-grid">
+        {allowedFoodGroups.map((group) => (
+          <article className={`tayyibat-allowed-card ${group.tone}`} key={group.title}>
+            <div className="tayyibat-allowed-icon">{group.icon}</div>
+            <div>
+              <h3>{group.title}</h3>
+              <p>{group.description}</p>
+            </div>
+            <div className="tayyibat-allowed-chips">
+              {group.items.map((item) => (
+                <span key={item}>{item}</span>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+
+function formatCounterValue(value: number) {
+  return value.toLocaleString("ar-SA");
 }
 
 function AnimatedStatCard({ label, value }: { label: string; value: number }) {
@@ -358,16 +392,14 @@ function AnimatedStatCard({ label, value }: { label: string; value: number }) {
 }
 
 export function HomePage() {
-  const { user, isLoading: authLoading } = useAuth();
-  const cacheKey = user ? "authenticated" : "anonymous";
+  const { isLoading: authLoading, isAdmin } = useAuth();
+  const cacheKey = "public";
   const cachedHomePage = homePageCache?.cacheKey === cacheKey ? homePageCache : null;
   const [videos, setVideos] = useState<VideoSummary[]>(cachedHomePage?.videos ?? []);
   const [playlists, setPlaylists] = useState<PlaylistWithVideos[]>(cachedHomePage?.playlists ?? []);
   const [isLoading, setIsLoading] = useState(!cachedHomePage);
   const [error, setError] = useState("");
-  const [isContactSubmitted, setIsContactSubmitted] = useState(false);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
-  const [openAllowedTayyibat, setOpenAllowedTayyibat] = useState<AllowedTayyibatKey | null>(null);
 
   const goToPreviousSlide = () => {
     setActiveSlideIndex((current) => (current === 0 ? tayyibatSlides.length - 1 : current - 1));
@@ -376,18 +408,6 @@ export function HomePage() {
   const goToNextSlide = () => {
     setActiveSlideIndex((current) => (current === tayyibatSlides.length - 1 ? 0 : current + 1));
   };
-
-  const toggleAllowedTayyibat = (key: AllowedTayyibatKey) => {
-    setOpenAllowedTayyibat((current) => (current === key ? null : key));
-  };
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveSlideIndex((current) => (current === tayyibatSlides.length - 1 ? 0 : current + 1));
-    }, TAYYIBAT_SLIDE_DELAY_MS);
-
-    return () => window.clearInterval(timer);
-  }, []);
 
   const loadVideos = useCallback(async (force = false) => {
     const cached = homePageCache?.cacheKey === cacheKey ? homePageCache : null;
@@ -409,7 +429,7 @@ export function HomePage() {
 
     const [videoResult, playlistResult] = await Promise.allSettled([
       supabase.from("videos").select("*").order("created_at", { ascending: false }),
-      fetchPlaylistsWithVideos(Boolean(user))
+      fetchPlaylistsWithVideos(true)
     ]);
 
     if (videoResult.status === "rejected" || videoResult.value.error) {
@@ -428,72 +448,89 @@ export function HomePage() {
       nextPlaylists = playlistResult.value;
     }
 
-    const enriched = await enrichVideos((videoResult.value.data ?? []) as VideoRecord[], Boolean(user));
+    const enriched = await enrichVideos((videoResult.value.data ?? []) as VideoRecord[], true);
     homePageCache = { cacheKey, videos: enriched, playlists: nextPlaylists };
     setVideos(enriched);
     setPlaylists(nextPlaylists);
     setIsLoading(false);
-  }, [cacheKey, user]);
+  }, [cacheKey]);
+
+  const visiblePlaylists = playlists.filter((playlist) => playlist.videos.length > 0);
 
   useEffect(() => {
     if (!authLoading) {
-      void loadVideos();
+      void loadVideos(true);
     }
   }, [authLoading, loadVideos]);
 
-  const stats = useMemo(
-    () => [
-      { label: "فيديو منشور", value: videos.length },
-      { label: "إعجاب", value: videos.reduce((total, video) => total + video.likes_count, 0) },
-      { label: "تعليق", value: videos.reduce((total, video) => total + video.comments_count, 0) }
-    ],
-    [videos]
-  );
-
   return (
     <section className="home-layout overflow-x-hidden" dir="rtl">
-      <section className="tayyibat-golden-rule-section overflow-x-hidden" aria-label="القاعدة الذهبية في نظام الطيبات">
-        <div className="tayyibat-golden-rule-card">
-          <div className="tayyibat-golden-rule-copy">
-            <span className="tayyibat-golden-rule-kicker">
-              <Sparkles size={16} aria-hidden="true" />
-              القاعدة الذهبية
+      <section className="hero-section hero-section--direct overflow-x-hidden" aria-label="منصة الطيبات للمشاهدة المباشرة">
+        <div className="hero-copy">
+          <span className="eyebrow">
+            <Sparkles size={16} aria-hidden="true" />
+            منصة فيديوهات الطيبات
+          </span>
+          <h1>شاهد فيديوهات نظام الطيبات مباشرة بدون تسجيل.</h1>
+          <p>
+            دروس ومقاطع نظام الطيبات للدكتور ضياء العوضي رحمه الله في مكان واحد، بتجربة عربية هادئة وسريعة
+            تفتح الفيديو فوراً بدون بريد إلكتروني أو خطوات إضافية.
+          </p>
+
+          <div className="hero-trust-list" aria-label="مزايا المشاهدة">
+            <span>
+              <CheckCircle2 size={17} aria-hidden="true" />
+              مشاهدة فورية
             </span>
-            <h1>
-              كُل فقط لما تجوع..
-              <br />
-              وتوقف قبل ما تشبع
-            </h1>
-            <p className="tayyibat-golden-rule-lead">
-              هذي هي القاعدة الذهبية التي أكد عليها الدكتور ضياء العوضي رحمه الله في كل محاضراته،
-              وهي المدخل العملي لفهم نظام الطيبات: ضبط وقت الأكل، وتقليل الكمية، وترك مساحة راحة للهضم.
-            </p>
+            <span>
+              <CheckCircle2 size={17} aria-hidden="true" />
+              بدون حساب
+            </span>
+            <span>
+              <CheckCircle2 size={17} aria-hidden="true" />
+              مناسب للجوال
+            </span>
           </div>
 
-          <div className="tayyibat-golden-principles" aria-label="المبادئ الأساسية للنظام">
-            <div className="tayyibat-golden-principle-card">
-              <strong>01</strong>
-              <span>تأكل فقط عند الجوع الحقيقي</span>
-            </div>
-            <div className="tayyibat-golden-principle-card">
-              <strong>02</strong>
-              <span>تتوقف عن الأكل قبل أن تشبع</span>
-            </div>
-            <div className="tayyibat-golden-principle-card">
-              <strong>03</strong>
-              <span>تعطي جهازك الهضمي راحة كافية بين الوجبات</span>
-            </div>
+          <div className="hero-actions flex-wrap gap-3">
+            <a className="button transition-all duration-200" href="#latest-videos">
+              <PlayCircle size={18} aria-hidden="true" />
+              شاهد أحدث الفيديوهات
+            </a>
+            <a className="button secondary transition-all duration-200" href="#tayyibat-allowed">
+              <Leaf size={17} aria-hidden="true" />
+              تصفح الطيبات المسموحة
+            </a>
           </div>
         </div>
-      </section>
 
-      <AllowedTayyibatSection openItem={openAllowedTayyibat} onToggle={toggleAllowedTayyibat} />
+        <div className="hero-panel" aria-label="ملخص المنصة">
+          <div className="hero-visual-card" aria-hidden="true">
+            <div className="hero-visual-pattern" />
+            <div className="hero-visual-play">
+              <PlayCircle size={46} aria-hidden="true" />
+            </div>
+            <div className="hero-visual-lines">
+              <span />
+              <span />
+              <span />
+            </div>
+          </div>
 
-      <section className="achievement-stats-section overflow-x-hidden" aria-label="إحصائيات الإنجاز">
-        <div className="achievement-stat-grid">
-          {achievementStats.map((item) => (
-            <AnimatedStatCard key={item.label} label={item.label} value={item.value} />
-          ))}
+          <div className="hero-stats" aria-label="إحصائيات مختصرة">
+            <div className="hero-stat">
+              <strong>{videos.length}</strong>
+              <span>فيديو متاح</span>
+            </div>
+            <div className="hero-stat">
+              <strong>بدون</strong>
+              <span>تسجيل دخول</span>
+            </div>
+            <div className="hero-stat">
+              <strong>فوري</strong>
+              <span>تشغيل مباشر</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -507,115 +544,86 @@ export function HomePage() {
       {isLoading ? <div className="empty-state">جار تحميل الفيديوهات...</div> : null}
 
       {!isLoading ? (
-        <section className="tayyibat-video-showcase overflow-x-hidden" aria-label="منطقة السلايدات والفيديوهات">
-          <TayyibatSlider
-            activeSlideIndex={activeSlideIndex}
-            onPrevious={goToPreviousSlide}
-            onNext={goToNextSlide}
-            onSelect={setActiveSlideIndex}
-          />
+        <section id="latest-videos" className="tayyibat-video-showcase overflow-x-hidden" aria-label="أحدث الفيديوهات">
+          <div className="section-head latest-videos-head">
+            <div>
+              <span className="eyebrow">
+                <PlayCircle size={16} aria-hidden="true" />
+                المشاهدة المباشرة
+              </span>
+              <h2>أحدث الفيديوهات</h2>
+              <p>اختر أي فيديو وابدأ المشاهدة فوراً بدون تسجيل أو تحويل لصفحة دخول.</p>
+            </div>
 
-          <div className="video-with-side-sliders">
-            <aside className="video-side-slider video-side-slider-right" aria-label="سلايدات يمين الفيديوهات">
-              <TayyibatSlider
-                activeSlideIndex={activeSlideIndex}
-                onPrevious={goToPreviousSlide}
-                onNext={goToNextSlide}
-                onSelect={setActiveSlideIndex}
-                variant="side"
-                sideLabel="دليل سريع"
-              />
-            </aside>
-
-            <main className="video-main-column">
-              {playlists.length > 0 ? (
-                <div className="playlist-stack overflow-x-hidden">
-                  {playlists.map((playlist) => (
-                    <Playlist key={playlist.id} playlist={playlist} canOpen={Boolean(user)} />
-                  ))}
-                </div>
-              ) : null}
-
-              {videos.length === 0 ? <div className="empty-state">لا توجد فيديوهات منشورة حاليا.</div> : null}
-
-              {videos.length > 0 ? (
-                <section className="overflow-x-hidden">
-                  <div className="section-head">
-                    <div>
-                      <h2>أحدث الفيديوهات</h2>
-                      <p>المحتوى المنشور يظهر هنا حسب الأحدث أولا.</p>
-                    </div>
-                  </div>
-
-                  <div className="video-grid">
-                    {videos.map((video) => (
-                      <VideoCard key={video.id} video={video} canOpen={Boolean(user)} showStats={Boolean(user)} />
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-            </main>
-
-            <aside className="video-side-slider video-side-slider-left" aria-label="سلايدات يسار الفيديوهات">
-              <TayyibatSlider
-                activeSlideIndex={activeSlideIndex}
-                onPrevious={goToPreviousSlide}
-                onNext={goToNextSlide}
-                onSelect={setActiveSlideIndex}
-                variant="side"
-                sideLabel="تصنيف مختصر"
-              />
-            </aside>
-          </div>
-        </section>
-      ) : null}
-
-      <div className="hero-section overflow-x-hidden">
-        <div className="hero-copy">
-          <span className="eyebrow">
-            <Sparkles size={16} aria-hidden="true" />
-            منصة عربية منظمة للفيديوهات
-          </span>
-          <h1>شاهد، أدر، وتفاعل مع محتوى الفيديو في تجربة واحدة.</h1>
-          <p>
-            واجهة RTL حديثة تعرض الفيديوهات الطويلة والقصيرة بوضوح، مع قوائم تشغيل أفقية وتسجيل دخول
-            للتفاعل ولوحة إدارة للرفع والتحرير والمتابعة.
-          </p>
-          <div className="hero-actions flex-wrap gap-3">
-            {user ? (
-              <Link className="button transition-all duration-200" to="/account">
-                <ShieldCheck size={17} aria-hidden="true" />
-                عرض الحساب
-              </Link>
-            ) : (
-              <Link className="button transition-all duration-200" to="/login">
-                <Lock size={17} aria-hidden="true" />
-                تسجيل الدخول
-              </Link>
-            )}
-            <button className="button secondary transition-all duration-200" type="button" onClick={() => loadVideos(true)}>
+            <button className="button secondary button-small transition-all duration-200" type="button" onClick={() => loadVideos(true)}>
               <RefreshCw size={16} aria-hidden="true" />
               تحديث القائمة
             </button>
           </div>
-        </div>
 
-        <div className="hero-panel" aria-label="ملخص المنصة">
-          <div className="hero-visual">
-            <div className="hero-play">
-              <UploadCloud size={26} aria-hidden="true" />
-            </div>
-          </div>
-          <div className="stat-grid">
-            {stats.map((item) => (
-              <div className="stat-card" key={item.label}>
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
+          {visiblePlaylists.length > 0 ? (
+            <section className="featured-playlists-panel overflow-x-hidden" aria-label="قوائم الفيديوهات المختارة">
+              <div className="section-head compact featured-playlists-head">
+                <div>
+                  <span className="eyebrow">
+                    <Sparkles size={16} aria-hidden="true" />
+                    قوائم مرتبة
+                  </span>
+                  <h2>قوائم مختارة حسب الموضوع</h2>
+                  <p>كل قائمة تظهر هنا بعد إضافة فيديو واحد على الأقل إليها من لوحة الإدارة.</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
+
+              <div className="playlist-stack overflow-x-hidden">
+                {visiblePlaylists.map((playlist) => (
+                  <Playlist key={playlist.id} playlist={playlist} canOpen />
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {isAdmin && playlists.length > 0 && visiblePlaylists.length === 0 ? (
+            <div className="empty-state compact-empty playlist-admin-hint">
+              قوائم التشغيل موجودة في لوحة الإدارة، لكنها لا تظهر للزوار حتى تضيف إليها فيديو واحداً على الأقل.
+            </div>
+          ) : null}
+
+          <section className="latest-videos-grid-panel" aria-label="كل الفيديوهات الحديثة">
+            <div className="section-head compact latest-grid-head">
+              <div>
+                <span className="eyebrow">
+                  <PlayCircle size={16} aria-hidden="true" />
+                  المكتبة العامة
+                </span>
+                <h2>كل الفيديوهات</h2>
+              </div>
+            </div>
+
+            {videos.length === 0 ? <div className="empty-state">لا توجد فيديوهات منشورة حاليا.</div> : null}
+
+            {videos.length > 0 ? (
+              <div className="video-grid">
+                {videos.map((video) => (
+                  <VideoCard key={video.id} video={video} canOpen showStats />
+                ))}
+              </div>
+            ) : null}
+          </section>
+        </section>
+      ) : null}
+
+      <AllowedFoodsSection />
+
+      <GoldenRuleHero />
+
+      {!isLoading ? (
+        <TayyibatSlider
+          activeSlideIndex={activeSlideIndex}
+          onPrevious={goToPreviousSlide}
+          onNext={goToNextSlide}
+          onSelect={setActiveSlideIndex}
+        />
+      ) : null}
     </section>
   );
 }

@@ -1,6 +1,6 @@
 import { Heart, MessageCircle, Pencil, Play, Send, Trash2 } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
 import { StatusMessage } from "@/components/StatusMessage";
 import { isSupabaseConfigured, supabase } from "@/lib/supabase";
@@ -102,9 +102,9 @@ function SuggestedVideoCard({ video }: { video: VideoSummary }) {
 
   return (
     <Link className="suggested-video-card transition-all duration-200" to={`/videos/${video.id}`}>
-      <div className={`suggested-video-thumb ${isShortVideo ? "short" : "long"}`}>
+      <div className={`suggested-video-thumb ${isShortVideo ? "short aspect-[9/16]" : "long aspect-video"}`}>
         {video.thumbnail_url ? (
-          <img src={video.thumbnail_url} alt="" />
+          <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" />
         ) : (
           <div className="suggested-video-empty">
             <Play size={24} aria-hidden="true" />
@@ -144,10 +144,9 @@ const videoDetailsCache = new Map<string, VideoDetailsCache>();
 
 export function VideoDetailsPage() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const videoId = id ?? "";
-  const cacheKey = user ? `${videoId}:${user.id}` : "";
+  const cacheKey = user ? `${videoId}:${user.id}` : `${videoId}:guest`;
   const cachedVideoDetails = cacheKey ? videoDetailsCache.get(cacheKey) : null;
 
   const [video, setVideo] = useState<VideoRecord | null>(cachedVideoDetails?.video ?? null);
@@ -238,11 +237,11 @@ export function VideoDetailsPage() {
   }, [user, videoId]);
 
   const loadVideo = useCallback(async (force = false) => {
-    if (!videoId || !user) {
+    if (!videoId) {
       return;
     }
 
-    const cached = videoDetailsCache.get(`${videoId}:${user.id}`);
+    const cached = videoDetailsCache.get(cacheKey);
 
     if (cached && !force) {
       setVideo(cached.video);
@@ -272,7 +271,7 @@ export function VideoDetailsPage() {
     setVideo(data);
     setVideoUrl(publicVideoUrl);
     const [nextComments, nextEngagement, nextRelatedVideos] = await Promise.all([loadComments(), loadEngagement(), loadRelatedVideos(data)]);
-    videoDetailsCache.set(`${videoId}:${user.id}`, {
+    videoDetailsCache.set(cacheKey, {
       video: data,
       videoUrl: publicVideoUrl,
       relatedVideos: nextRelatedVideos,
@@ -282,13 +281,7 @@ export function VideoDetailsPage() {
       liked: nextEngagement.liked
     });
     setIsLoading(false);
-  }, [loadComments, loadEngagement, loadRelatedVideos, user, videoId]);
-
-  useEffect(() => {
-    if (isSupabaseConfigured && !authLoading && !user) {
-      navigate(`/login?redirect=/videos/${videoId}`, { replace: true });
-    }
-  }, [authLoading, navigate, user, videoId]);
+  }, [cacheKey, loadComments, loadEngagement, loadRelatedVideos, videoId]);
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -296,14 +289,14 @@ export function VideoDetailsPage() {
       return;
     }
 
-    if (!authLoading && user) {
+    if (!authLoading) {
       void loadVideo();
     }
-  }, [authLoading, loadVideo, user]);
+  }, [authLoading, loadVideo]);
 
   async function handleLike() {
     if (!user) {
-      navigate(`/login?redirect=/videos/${videoId}`);
+      setError("المشاهدة متاحة للجميع، أما الإعجاب والتعليق فيحتاجان تسجيل دخول.");
       return;
     }
 
@@ -334,7 +327,7 @@ export function VideoDetailsPage() {
     event.preventDefault();
 
     if (!user) {
-      navigate(`/login?redirect=/videos/${videoId}`);
+      setError("المشاهدة متاحة للجميع، أما إضافة تعليق فتحتاج تسجيل دخول.");
       return;
     }
 
@@ -512,12 +505,14 @@ export function VideoDetailsPage() {
                   </span>
                 </div>
 
-                <div className="video-action-buttons flex-wrap gap-3">
-                  <button className="button secondary transition-all duration-200" type="button" onClick={handleLike} disabled={isActionBusy}>
-                    <Heart size={17} fill={liked ? "currentColor" : "none"} aria-hidden="true" />
-                    {liked ? "إلغاء الإعجاب" : "إعجاب"}
-                  </button>
-                </div>
+                {user ? (
+                  <div className="video-action-buttons flex-wrap gap-3">
+                    <button className="button secondary transition-all duration-200" type="button" onClick={handleLike} disabled={isActionBusy}>
+                      <Heart size={17} fill={liked ? "currentColor" : "none"} aria-hidden="true" />
+                      {liked ? "إلغاء الإعجاب" : "إعجاب"}
+                    </button>
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -529,25 +524,31 @@ export function VideoDetailsPage() {
                 </div>
               </div>
 
-              <form className="form-stack" onSubmit={handleAddComment}>
-                <div className="field">
-                  <label htmlFor="comment">تعليق جديد</label>
-                  <textarea
-                    id="comment"
-                    value={newComment}
-                    onChange={(event) => setNewComment(event.target.value)}
-                    maxLength={2000}
-                    placeholder="اكتب تعليقك هنا"
-                    required
-                  />
+              {user ? (
+                <form className="form-stack" onSubmit={handleAddComment}>
+                  <div className="field">
+                    <label htmlFor="comment">تعليق جديد</label>
+                    <textarea
+                      id="comment"
+                      value={newComment}
+                      onChange={(event) => setNewComment(event.target.value)}
+                      maxLength={2000}
+                      placeholder="اكتب تعليقك هنا"
+                      required
+                    />
+                  </div>
+                  <div className="form-actions flex-wrap gap-3">
+                    <button className="button transition-all duration-200" type="submit" disabled={isActionBusy}>
+                      <Send size={17} aria-hidden="true" />
+                      إرسال
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="status-message info">
+                  التعليقات متاحة للقراءة، والمشاهدة لا تحتاج إلى تسجيل دخول.
                 </div>
-                <div className="form-actions flex-wrap gap-3">
-                  <button className="button transition-all duration-200" type="submit" disabled={isActionBusy}>
-                    <Send size={17} aria-hidden="true" />
-                    إرسال
-                  </button>
-                </div>
-              </form>
+              )}
 
               <div className="comment-list">
                 {comments.length === 0 ? <div className="empty-state">لا توجد تعليقات بعد.</div> : null}

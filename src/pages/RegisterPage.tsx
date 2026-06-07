@@ -56,8 +56,8 @@ export function RegisterPage() {
     <section className="auth-layout">
       <div className="auth-copy">
         <span className="eyebrow">حساب جديد</span>
-        <h1>أنشئ حسابك للوصول إلى تجربة مشاهدة كاملة.</h1>
-        <p>بعد التسجيل يمكنك فتح الفيديوهات، إضافة التعليقات، وتسجيل الإعجاب بالمحتوى.</p>
+        <h1>إنشاء حساب للتفاعل فقط.</h1>
+        <p>المشاهدة مفتوحة للجميع بدون تسجيل. الحساب مخصص للتعليقات أو الإعجاب أو صلاحيات الإدارة عند الحاجة.</p>
       </div>
 
       <div className="form-panel">

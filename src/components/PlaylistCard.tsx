@@ -12,15 +12,15 @@ function getCategoryLabel(video: VideoSummary) {
 }
 
 export function PlaylistCard({ video, canOpen = true }: PlaylistCardProps) {
-  const href = canOpen ? `/videos/${video.id}` : `/login?redirect=/videos/${video.id}`;
+  const href = `/videos/${video.id}`;
   const isShortVideo = video.video_type === "short";
 
   return (
     <article className="playlist-card flex-shrink-0 transition-all duration-200">
       <Link to={href} className="playlist-card-link" aria-label={`مشاهدة ${video.title}`}>
-        <div className={`playlist-card-thumb ${isShortVideo ? "short" : "long"}`}>
+        <div className={`playlist-card-thumb ${isShortVideo ? "short aspect-[9/16]" : "long aspect-video"}`}>
           {video.thumbnail_url ? (
-            <img src={video.thumbnail_url} alt="" />
+            <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" />
           ) : (
             <div className="thumbnail-empty">
               <Play size={30} aria-hidden="true" />

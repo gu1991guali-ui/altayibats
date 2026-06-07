@@ -25,8 +25,14 @@ export function App() {
         </Routes>
       </main>
       <footer className="site-footer">
-        <span>الطيبات</span>
-        <Link to="/legal">سياسة الخصوصية وشروط الاستخدام</Link>
+        <div>
+          <strong>الطيبات</strong>
+          <span>منصة فيديوهات تعليمية عن نظام الطيبات للدكتور ضياء العوضي رحمه الله.</span>
+        </div>
+        <nav aria-label="روابط الفوتر">
+          <Link to="/legal">الخصوصية والشروط</Link>
+          <Link to="/login">دخول الإدارة</Link>
+        </nav>
       </footer>
     </>
   );

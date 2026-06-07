@@ -6,6 +6,22 @@ type PlaylistProps = {
   canOpen?: boolean;
 };
 
+function formatVideoCount(count: number) {
+  if (count === 1) {
+    return "فيديو واحد";
+  }
+
+  if (count === 2) {
+    return "فيديوهان";
+  }
+
+  if (count <= 10) {
+    return `${count} فيديوهات`;
+  }
+
+  return `${count} فيديو`;
+}
+
 export function Playlist({ playlist, canOpen = true }: PlaylistProps) {
   if (playlist.videos.length === 0) {
     return null;
@@ -18,6 +34,8 @@ export function Playlist({ playlist, canOpen = true }: PlaylistProps) {
           <h2>{playlist.title}</h2>
           {playlist.description ? <p>{playlist.description}</p> : null}
         </div>
+
+        <span className="playlist-count-badge">{formatVideoCount(playlist.videos.length)}</span>
       </div>
 
       <div className="playlist-slider flex gap-4 overflow-x-auto flex-shrink-0">

@@ -2171,191 +2171,13 @@ button:disabled {
 }
 
 /* =========================================================
-   Tayyibat premium refinements
-   Added without removing existing styles.
+   Premium Golden Rule Hero
+   Added for the cinematic RTL hero section.
    ========================================================= */
-.tayyibat-golden-rule-section {
-  padding-block: clamp(24px, 4vw, 54px) clamp(18px, 3vw, 34px);
-}
-
-.tayyibat-golden-rule-card {
-  grid-template-columns: 1fr;
-  gap: clamp(24px, 3.2vw, 40px);
-  padding: clamp(30px, 5.4vw, 70px) clamp(22px, 5vw, 64px);
-  border: 1px solid rgba(246, 215, 122, 0.34);
-  border-radius: clamp(28px, 4vw, 48px);
-  background:
-    linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 34%),
-    radial-gradient(circle at 8% 12%, rgba(246, 215, 122, 0.38), transparent 25%),
-    radial-gradient(circle at 88% 18%, rgba(27, 173, 128, 0.22), transparent 30%),
-    radial-gradient(circle at 12% 96%, rgba(246, 215, 122, 0.16), transparent 26%),
-    linear-gradient(135deg, #03160f 0%, #064132 44%, #09251d 72%, #03100c 100%);
-  box-shadow:
-    0 34px 100px rgba(3, 22, 15, 0.32),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-}
-
-.tayyibat-golden-rule-card::before {
-  inset: clamp(10px, 1.6vw, 18px);
-  border-color: rgba(246, 215, 122, 0.2);
-  box-shadow: inset 0 0 42px rgba(255, 255, 255, 0.04);
-}
-
-.tayyibat-golden-rule-card::after {
-  width: 360px;
-  height: 360px;
-  background:
-    radial-gradient(circle, rgba(246, 215, 122, 0.22), rgba(246, 215, 122, 0.06) 48%, transparent 72%);
-  filter: blur(4px);
-}
-
-.tayyibat-golden-rule-copy {
-  display: grid;
-  justify-items: center;
-  gap: clamp(14px, 2vw, 22px);
-  text-align: center;
-}
-
-.tayyibat-golden-rule-kicker {
-  gap: 8px;
-  min-height: 42px;
-  padding: 0 18px;
-  border-color: rgba(246, 215, 122, 0.58);
-  background: rgba(246, 215, 122, 0.14);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
-}
-
-.tayyibat-golden-rule-card h1 {
-  max-width: 980px;
-  margin-inline: auto;
-  font-size: clamp(38px, 6.2vw, 82px);
-  line-height: 1.18;
-  text-wrap: balance;
-  text-shadow: 0 18px 42px rgba(0, 0, 0, 0.32);
-}
-
-.tayyibat-golden-rule-lead {
-  max-width: 840px;
-  margin-inline: auto;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: clamp(16px, 1.9vw, 23px);
-  line-height: 1.95;
-  text-wrap: pretty;
-}
-
-.tayyibat-golden-principles {
-  align-items: stretch;
-  margin-top: clamp(4px, 1vw, 12px);
-}
-
-.tayyibat-golden-principle-card,
-.tayyibat-golden-principles div {
-  position: relative;
-  overflow: hidden;
-  min-height: 150px;
-  padding: 22px;
-  border-color: rgba(246, 215, 122, 0.24);
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.06)),
-    rgba(5, 55, 42, 0.48);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 18px 42px rgba(0, 0, 0, 0.14);
-}
-
-.tayyibat-golden-principle-card::before,
-.tayyibat-golden-principles div::before {
-  content: "";
-  position: absolute;
-  inset-inline-start: 18px;
-  top: 18px;
-  width: 46px;
-  height: 46px;
-  border: 1px solid rgba(246, 215, 122, 0.34);
-  border-radius: 999px;
-  background: rgba(246, 215, 122, 0.08);
-}
-
-.tayyibat-golden-principles strong {
-  position: relative;
-  z-index: 1;
-  width: fit-content;
-  padding: 4px 10px;
-  color: #f8d878;
-  border: 1px solid rgba(246, 215, 122, 0.38);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
-}
-
-.tayyibat-golden-principles span {
-  position: relative;
-  z-index: 1;
-  max-width: 260px;
-  font-size: clamp(16px, 1.65vw, 20px);
-}
-
-.tayyibat-slide-card {
-  border-color: rgba(246, 215, 122, 0.2);
-  border-radius: 32px;
-  box-shadow:
-    0 30px 90px rgba(8, 20, 14, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-}
-
-.tayyibat-slide-content h1 {
-  text-wrap: balance;
-}
-
-.tayyibat-slide-content p {
-  text-wrap: pretty;
-}
-
-.tayyibat-slide-highlight {
-  white-space: normal;
-  line-height: 1.7;
-}
-
-.tayyibat-slider-dots button:focus-visible,
-.tayyibat-slider-arrow:focus-visible {
-  outline: 3px solid rgba(246, 215, 122, 0.46);
-  outline-offset: 3px;
-}
-
-@media (max-width: 860px) {
-  .tayyibat-golden-rule-copy {
-    justify-items: start;
-    text-align: right;
-  }
-
-  .tayyibat-golden-rule-card h1,
-  .tayyibat-golden-rule-lead {
-    margin-inline: 0;
-  }
-}
-
-@media (max-width: 620px) {
-  .tayyibat-golden-rule-card {
-    padding: 26px 18px;
-  }
-
-  .tayyibat-golden-rule-card h1 {
-    font-size: clamp(32px, 10vw, 46px);
-  }
-
-  .tayyibat-golden-rule-lead {
-    font-size: 16px;
-  }
-}
-
-
-/* =========================================================
-   Allowed Tayyibat Section
-   Placed directly after the golden rule section only.
-   ========================================================= */
-.allowed-tayyibat-section {
-  direction: rtl;
+.golden-rule-hero {
   width: 100%;
-  padding-block: clamp(4px, 1.4vw, 14px) clamp(18px, 3vw, 34px);
+  direction: rtl;
+  padding-block: clamp(22px, 4vw, 54px);
   color: #ffffff;
   font-family:
     "Cairo",
@@ -2365,252 +2187,1731 @@ button:disabled {
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+  overflow: hidden;
 }
 
-.allowed-tayyibat-card {
+.golden-rule-hero__shell {
   position: relative;
   isolation: isolate;
   display: grid;
-  gap: clamp(18px, 2.6vw, 28px);
+  gap: clamp(26px, 4vw, 44px);
+  min-height: clamp(560px, 72vh, 760px);
   overflow: hidden;
-  padding: clamp(22px, 4vw, 42px);
-  border: 1px solid rgba(246, 215, 122, 0.28);
-  border-radius: clamp(24px, 3vw, 34px);
+  padding: clamp(28px, 5vw, 68px);
+  border: 1px solid rgba(245, 199, 91, 0.68);
+  border-radius: 36px;
   background:
-    radial-gradient(circle at 12% 18%, rgba(246, 215, 122, 0.2), transparent 27%),
-    radial-gradient(circle at 88% 16%, rgba(15, 118, 110, 0.2), transparent 30%),
-    linear-gradient(135deg, rgba(5, 35, 28, 0.96), rgba(8, 82, 68, 0.9) 48%, rgba(4, 18, 14, 0.96));
+    radial-gradient(circle at 14% 18%, rgba(250, 214, 124, 0.2), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(0, 168, 128, 0.2), transparent 28%),
+    radial-gradient(circle at 50% 84%, rgba(248, 198, 82, 0.14), transparent 24%),
+    linear-gradient(135deg, #061a14 0%, #073428 36%, #05231c 62%, #020807 100%);
   box-shadow:
-    0 24px 70px rgba(5, 22, 17, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    0 34px 110px rgba(0, 14, 11, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    inset 0 0 90px rgba(245, 199, 91, 0.08);
 }
 
-.allowed-tayyibat-card::before {
+.golden-rule-hero__shell::before {
   content: "";
   position: absolute;
-  inset: 12px;
+  inset: clamp(10px, 1.4vw, 18px);
   z-index: -1;
-  border: 1px solid rgba(246, 215, 122, 0.14);
-  border-radius: inherit;
+  border: 1px solid rgba(245, 199, 91, 0.24);
+  border-radius: 30px;
+  box-shadow:
+    inset 0 0 38px rgba(255, 255, 255, 0.04),
+    0 0 26px rgba(245, 199, 91, 0.12);
   pointer-events: none;
 }
 
-.allowed-tayyibat-card::after {
+.golden-rule-hero__shell::after {
   content: "";
   position: absolute;
-  inset-inline-start: -90px;
-  bottom: -130px;
-  z-index: -1;
-  width: 280px;
-  height: 280px;
-  border-radius: 999px;
-  background: radial-gradient(circle, rgba(246, 215, 122, 0.16), transparent 68%);
+  inset: 0;
+  z-index: -2;
+  background:
+    linear-gradient(115deg, transparent 0 15%, rgba(255, 255, 255, 0.06) 18%, transparent 24% 100%),
+    radial-gradient(circle at 18% 22%, rgba(255, 220, 126, 0.18), transparent 16%),
+    radial-gradient(circle at 86% 72%, rgba(255, 220, 126, 0.12), transparent 18%);
   pointer-events: none;
 }
 
-.allowed-tayyibat-head {
+.golden-rule-hero::before,
+.golden-rule-hero::after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.golden-rule-hero__shell .golden-rule-hero__content::before,
+.golden-rule-hero__shell .golden-rule-hero__content::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: clamp(170px, 22vw, 330px);
+  height: clamp(230px, 28vw, 420px);
+  opacity: 0.32;
+  filter: blur(0.2px);
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(114, 170, 111, 0.54), transparent 42%),
+    radial-gradient(ellipse at 50% 55%, rgba(25, 83, 61, 0.78), transparent 48%);
+  clip-path: polygon(50% 0%, 64% 18%, 76% 43%, 62% 70%, 50% 100%, 38% 70%, 24% 43%, 36% 18%);
+}
+
+.golden-rule-hero__shell .golden-rule-hero__content::before {
+  inset-inline-start: clamp(-80px, -5vw, -34px);
+  top: clamp(70px, 10vw, 130px);
+  transform: rotate(-24deg);
+}
+
+.golden-rule-hero__shell .golden-rule-hero__content::after {
+  inset-inline-end: clamp(-90px, -6vw, -38px);
+  bottom: clamp(30px, 6vw, 84px);
+  transform: rotate(28deg);
+}
+
+.golden-rule-hero__content {
+  position: relative;
+  z-index: 1;
   display: grid;
-  justify-items: start;
-  gap: 10px;
+  justify-items: center;
+  align-content: center;
+  gap: clamp(16px, 2.4vw, 24px);
+  text-align: center;
 }
 
-.allowed-tayyibat-kicker {
+.golden-rule-hero__badge {
   display: inline-flex;
-  width: fit-content;
   align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  padding: 0 14px;
-  border: 1px solid rgba(246, 215, 122, 0.44);
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  color: #f8d777;
+  background:
+    linear-gradient(135deg, rgba(255, 224, 128, 0.14), rgba(255, 224, 128, 0.04)),
+    rgba(3, 26, 21, 0.5);
+  border: 1px solid rgba(245, 199, 91, 0.56);
   border-radius: 999px;
-  color: #f6d77a;
-  background: rgba(246, 215, 122, 0.11);
-  font-size: 14px;
+  box-shadow:
+    0 0 28px rgba(245, 199, 91, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  font-size: clamp(15px, 1.5vw, 20px);
   font-weight: 950;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.12);
+  line-height: 1;
+  backdrop-filter: blur(16px);
 }
 
-.allowed-tayyibat-head h2 {
+.golden-rule-hero__badge svg {
+  filter: drop-shadow(0 0 10px rgba(245, 199, 91, 0.55));
+}
+
+.golden-rule-hero__title {
+  max-width: 1040px;
   margin: 0;
   color: #ffffff;
-  font-size: clamp(28px, 4.2vw, 52px);
+  font-size: clamp(44px, 7.2vw, 112px);
   font-weight: 950;
-  line-height: 1.2;
-  text-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+  line-height: 1.18;
+  letter-spacing: -2px;
+  text-wrap: balance;
+  text-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.14),
+    0 18px 42px rgba(0, 0, 0, 0.42);
 }
 
-.allowed-tayyibat-head p {
-  max-width: 780px;
+.golden-rule-hero__title::first-letter {
+  color: #f8d777;
+}
+
+.golden-rule-hero__subtitle {
+  max-width: 920px;
   margin: 0;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: clamp(15px, 1.7vw, 19px);
-  font-weight: 700;
-  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: clamp(17px, 2vw, 28px);
+  font-weight: 650;
+  line-height: 1.95;
+  text-wrap: pretty;
+  text-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
 
-.allowed-tayyibat-grid {
+.golden-rule-hero__divider {
+  display: grid;
+  width: min(320px, 52vw);
+  height: 22px;
+  place-items: center;
+  opacity: 0.85;
+}
+
+.golden-rule-hero__divider span {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(245, 199, 91, 0.8), transparent);
+}
+
+.golden-rule-hero__divider span::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  width: 12px;
+  height: 12px;
+  border: 1px solid rgba(245, 199, 91, 0.95);
+  background: #f8d777;
+  box-shadow: 0 0 18px rgba(245, 199, 91, 0.72);
+  transform: translate(50%, -50%) rotate(45deg);
+}
+
+.golden-rule-hero__cards {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(12px, 1.8vw, 18px);
+  gap: clamp(16px, 2.2vw, 28px);
+  align-items: stretch;
 }
 
-.allowed-tayyibat-item {
-  min-width: 0;
-}
-
-.allowed-tayyibat-button {
+.golden-rule-hero__card {
   position: relative;
-  display: flex;
-  width: 100%;
-  min-height: 58px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    "icon number"
+    "icon text";
+  gap: 8px 18px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 18px;
-  border: 1px solid rgba(246, 215, 122, 0.34);
-  border-radius: 18px;
-  color: #fff5c4;
+  min-height: 190px;
+  overflow: hidden;
+  padding: clamp(20px, 2.8vw, 34px);
+  border: 1px solid rgba(245, 199, 91, 0.48);
+  border-radius: 28px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.05)),
-    rgba(7, 61, 50, 0.54);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.05)),
+    rgba(6, 57, 44, 0.54);
   box-shadow:
-    0 14px 34px rgba(0, 0, 0, 0.12),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  font-size: clamp(16px, 1.65vw, 20px);
-  font-weight: 950;
-  text-align: right;
-  backdrop-filter: blur(14px);
+    0 22px 60px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(18px);
   transition:
     transform 220ms ease,
     border-color 220ms ease,
-    background-color 220ms ease,
     box-shadow 220ms ease,
-    color 220ms ease;
-}
-
-.allowed-tayyibat-button:hover,
-.allowed-tayyibat-item.is-open .allowed-tayyibat-button {
-  color: #ffffff;
-  border-color: rgba(246, 215, 122, 0.7);
-  background:
-    linear-gradient(135deg, rgba(246, 215, 122, 0.2), rgba(255, 255, 255, 0.07)),
-    rgba(8, 83, 68, 0.72);
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.18),
-    0 0 28px rgba(246, 215, 122, 0.11),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  transform: translateY(-2px);
-}
-
-.allowed-tayyibat-button:focus-visible {
-  outline: 3px solid rgba(246, 215, 122, 0.44);
-  outline-offset: 3px;
-}
-
-.allowed-tayyibat-plus {
-  display: inline-grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid rgba(246, 215, 122, 0.44);
-  border-radius: 999px;
-  color: #f6d77a;
-  background: rgba(246, 215, 122, 0.09);
-  font-size: 20px;
-  line-height: 1;
-  transition:
-    transform 220ms ease,
     background-color 220ms ease;
 }
 
-.allowed-tayyibat-item.is-open .allowed-tayyibat-plus {
-  background: rgba(246, 215, 122, 0.18);
-  transform: rotate(180deg);
+.golden-rule-hero__card::before {
+  content: "";
+  position: absolute;
+  inset-inline: 15%;
+  bottom: -2px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #f8d777, transparent);
+  box-shadow: 0 0 24px rgba(248, 215, 119, 0.9);
 }
 
-.allowed-tayyibat-explanation {
-  max-height: 0;
-  margin: 0;
-  overflow: hidden;
-  opacity: 0;
-  transform: translateY(-8px);
+.golden-rule-hero__card::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: 26px;
+  background: radial-gradient(circle at 50% 100%, rgba(248, 215, 119, 0.13), transparent 38%);
   pointer-events: none;
-  transition:
-    max-height 340ms ease,
-    margin 260ms ease,
-    opacity 260ms ease,
-    transform 260ms ease;
 }
 
-.allowed-tayyibat-item.is-open .allowed-tayyibat-explanation {
-  max-height: 260px;
-  margin-top: 10px;
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+.golden-rule-hero__card:hover {
+  transform: translateY(-7px);
+  border-color: rgba(248, 215, 119, 0.8);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.28),
+    0 0 38px rgba(248, 215, 119, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
-.allowed-tayyibat-explanation-inner {
+.golden-rule-hero__icon {
+  grid-area: icon;
+  display: grid;
+  width: clamp(62px, 6vw, 88px);
+  height: clamp(62px, 6vw, 88px);
+  place-items: center;
+  color: #f8d777;
+  border: 1px solid rgba(248, 215, 119, 0.56);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(248, 215, 119, 0.16), rgba(248, 215, 119, 0.04) 52%, rgba(0, 0, 0, 0.16));
+  box-shadow:
+    0 0 24px rgba(248, 215, 119, 0.14),
+    inset 0 0 18px rgba(248, 215, 119, 0.08);
+}
+
+.golden-rule-hero__icon svg {
+  width: 62%;
+  height: 62%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 3.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 10px rgba(248, 215, 119, 0.42));
+}
+
+.golden-rule-hero__number {
+  grid-area: number;
+  justify-self: start;
+  color: #f8d777;
+  font-size: clamp(44px, 5.4vw, 78px);
+  font-weight: 950;
+  line-height: 1;
+  letter-spacing: -1px;
+  text-shadow: 0 0 22px rgba(248, 215, 119, 0.22);
+}
+
+.golden-rule-hero__card p {
+  grid-area: text;
+  max-width: 300px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: clamp(19px, 2vw, 32px);
+  font-weight: 900;
+  line-height: 1.45;
+  text-wrap: balance;
+  text-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+@media (max-width: 980px) {
+  .golden-rule-hero__shell {
+    min-height: auto;
+  }
+
+  .golden-rule-hero__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .golden-rule-hero__card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .golden-rule-hero__title {
+    letter-spacing: -1px;
+  }
+}
+
+@media (max-width: 680px) {
+  .golden-rule-hero {
+    padding-block: 16px 24px;
+  }
+
+  .golden-rule-hero__shell {
+    gap: 24px;
+    padding: 24px 16px;
+    border-radius: 28px;
+  }
+
+  .golden-rule-hero__shell::before {
+    border-radius: 22px;
+  }
+
+  .golden-rule-hero__cards {
+    grid-template-columns: 1fr;
+  }
+
+  .golden-rule-hero__card,
+  .golden-rule-hero__card:last-child {
+    grid-column: auto;
+  }
+
+  .golden-rule-hero__card {
+    min-height: 156px;
+    grid-template-columns: auto 1fr;
+    border-radius: 22px;
+  }
+
+  .golden-rule-hero__title {
+    font-size: clamp(38px, 11vw, 58px);
+    line-height: 1.25;
+  }
+
+  .golden-rule-hero__subtitle {
+    font-size: 16px;
+    line-height: 1.85;
+  }
+
+  .golden-rule-hero__badge {
+    min-height: 40px;
+    padding-inline: 16px;
+  }
+
+  .golden-rule-hero__number {
+    font-size: 42px;
+  }
+
+  .golden-rule-hero__card p {
+    max-width: none;
+    font-size: 20px;
+  }
+}
+
+
+
+/* =========================================================
+   Tayyibat Dev UI refresh: natural Islamic palette + direct watching UX
+   ========================================================= */
+:root {
+  --bg: #f7f4ec;
+  --bg-strong: #efe7d6;
+  --surface: #ffffff;
+  --surface-muted: #f2eadb;
+  --text: #1f2a24;
+  --muted: #6f766e;
+  --border: #ded3bd;
+  --accent: #2f6b4f;
+  --accent-strong: #214d39;
+  --accent-soft: #e2efe7;
+  --ink: #1f2a24;
+  --warning: #b98a35;
+  --gold: #b98a35;
+  --gold-soft: #f4ead4;
+  --earth: #7a5a32;
+  --earth-soft: #efe3cf;
+  --danger: #a94438;
+  --danger-soft: #f8e3df;
+  --success: #2f6b4f;
+  --success-soft: #e2efe7;
+  --focus: rgba(47, 107, 79, 0.22);
+  --shadow-sm: 0 10px 26px rgba(31, 42, 36, 0.07);
+  --shadow-md: 0 22px 55px rgba(31, 42, 36, 0.11);
+  --radius: 14px;
+}
+
+html {
+  scroll-behavior: smooth;
+  background: var(--bg);
+}
+
+body {
+  background:
+    radial-gradient(circle at 92% 6%, rgba(185, 138, 53, 0.12), transparent 28%),
+    radial-gradient(circle at 8% 12%, rgba(47, 107, 79, 0.11), transparent 24%),
+    linear-gradient(45deg, rgba(47, 107, 79, 0.035) 25%, transparent 25% 75%, rgba(47, 107, 79, 0.035) 75%),
+    linear-gradient(135deg, rgba(185, 138, 53, 0.035) 25%, transparent 25% 75%, rgba(185, 138, 53, 0.035) 75%),
+    var(--bg);
+  background-size: auto, auto, 38px 38px, 38px 38px, auto;
+  font-family:
+    "IBM Plex Sans Arabic",
+    "Tajawal",
+    "Segoe UI",
+    Tahoma,
+    Arial,
+    sans-serif;
+}
+
+.site-header {
+  min-height: 68px;
+  background: rgba(247, 244, 236, 0.9);
+  border-bottom-color: rgba(222, 211, 189, 0.78);
+  backdrop-filter: blur(18px);
+}
+
+.brand {
+  color: var(--accent-strong);
+}
+
+.brand-mark {
+  background: linear-gradient(135deg, var(--accent-strong), var(--accent));
+  border-radius: 16px;
+  box-shadow:
+    0 12px 24px rgba(33, 77, 57, 0.16),
+    inset 0 -8px 16px rgba(255, 255, 255, 0.08);
+}
+
+.nav-link,
+.nav-button,
+.button {
+  border-radius: 999px;
+}
+
+.nav-link:hover,
+.nav-button:hover {
+  background: var(--surface-muted);
+}
+
+.nav-link.active {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.nav-cta {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 900;
+  box-shadow: 0 10px 22px rgba(47, 107, 79, 0.16);
+}
+
+.nav-cta:hover {
+  color: #ffffff;
+  background: var(--accent-strong);
+}
+
+.button {
+  min-height: 46px;
+  padding-inline: 22px;
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 12px 26px rgba(47, 107, 79, 0.18);
+}
+
+.button:hover {
+  background: var(--accent-strong);
+}
+
+.button.secondary {
+  color: #6f4d18;
+  background: var(--gold-soft);
+  border-color: #dfc68f;
+}
+
+.button.ghost {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.page-shell {
+  padding-top: 26px;
+}
+
+.home-layout {
+  gap: clamp(24px, 4vw, 46px);
+}
+
+.hero-section--direct {
+  position: relative;
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  min-height: auto;
+  overflow: hidden;
+  padding: clamp(26px, 5vw, 58px);
+  background:
+    radial-gradient(circle at top right, rgba(185, 138, 53, 0.16), transparent 32%),
+    radial-gradient(circle at bottom left, rgba(47, 107, 79, 0.14), transparent 30%),
+    linear-gradient(135deg, #f7f4ec 0%, #eef4eb 100%);
+  border: 1px solid rgba(222, 211, 189, 0.9);
+  border-radius: 30px;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-section--direct::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  z-index: -1;
+  opacity: 0.33;
+  border: 1px solid rgba(185, 138, 53, 0.18);
+  border-radius: 24px;
+  background:
+    linear-gradient(45deg, transparent 48%, rgba(185, 138, 53, 0.14) 49% 51%, transparent 52%),
+    linear-gradient(-45deg, transparent 48%, rgba(47, 107, 79, 0.12) 49% 51%, transparent 52%);
+  background-size: 34px 34px;
+  pointer-events: none;
+}
+
+.hero-copy {
+  align-content: center;
+}
+
+.eyebrow {
+  color: var(--accent-strong);
+  background: rgba(226, 239, 231, 0.9);
+  border-color: rgba(47, 107, 79, 0.18);
+}
+
+.hero-copy h1,
+.page-heading h1,
+.auth-copy h1,
+.section-head h2,
+.content-panel h2,
+.form-panel h2,
+.related-videos-head h2 {
+  color: var(--text);
+}
+
+.hero-copy h1 {
+  max-width: 820px;
+  font-size: clamp(34px, 5.8vw, 64px);
+  letter-spacing: -0.8px;
+}
+
+.hero-copy p {
+  max-width: 720px;
+  color: #59645d;
+}
+
+.hero-trust-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hero-trust-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 12px;
+  color: var(--accent-strong);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(222, 211, 189, 0.84);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.hero-panel {
+  align-self: stretch;
+  align-content: center;
+}
+
+.hero-visual-card {
   position: relative;
   display: grid;
-  gap: 8px;
-  padding: 16px 18px;
-  border: 1px solid rgba(246, 215, 122, 0.26);
-  border-radius: 18px;
+  min-height: 300px;
+  overflow: hidden;
+  place-items: center;
+  border: 1px solid rgba(33, 77, 57, 0.18);
+  border-radius: 26px;
   background:
-    radial-gradient(circle at 12% 12%, rgba(246, 215, 122, 0.15), transparent 32%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.05)),
-    rgba(3, 31, 25, 0.66);
-  box-shadow:
-    0 15px 36px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(14px);
+    radial-gradient(circle at 30% 24%, rgba(248, 237, 207, 0.2), transparent 26%),
+    linear-gradient(135deg, #214d39, #2f6b4f);
+  box-shadow: 0 24px 60px rgba(33, 77, 57, 0.18);
 }
 
-.allowed-tayyibat-explanation-inner strong {
-  color: #f6d77a;
+.hero-visual-pattern {
+  position: absolute;
+  inset: 18px;
+  opacity: 0.24;
+  border: 1px solid rgba(244, 234, 212, 0.32);
+  border-radius: 22px;
+  background:
+    linear-gradient(45deg, transparent 48%, rgba(244, 234, 212, 0.42) 49% 51%, transparent 52%),
+    linear-gradient(-45deg, transparent 48%, rgba(244, 234, 212, 0.28) 49% 51%, transparent 52%);
+  background-size: 36px 36px;
+}
+
+.hero-visual-play {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 104px;
+  height: 104px;
+  place-items: center;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(244, 234, 212, 0.38);
+  border-radius: 999px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.18);
+}
+
+.hero-visual-lines {
+  position: absolute;
+  inset-inline: 28px;
+  bottom: 28px;
+  display: grid;
+  gap: 10px;
+}
+
+.hero-visual-lines span {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.17);
+}
+
+.hero-visual-lines span:nth-child(2) {
+  width: 72%;
+}
+
+.hero-visual-lines span:nth-child(3) {
+  width: 48%;
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hero-stat,
+.stat-card {
+  background: rgba(255, 255, 255, 0.84);
+  border-color: rgba(222, 211, 189, 0.86);
+  border-radius: 18px;
+}
+
+.hero-stat {
+  display: grid;
+  gap: 2px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.hero-stat strong {
+  color: var(--accent-strong);
+  font-size: clamp(22px, 3vw, 30px);
+  line-height: 1.1;
+}
+
+.hero-stat span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.latest-videos-head {
+  align-items: center;
+  padding: 2px 0 4px;
+}
+
+.latest-videos-head > div {
+  display: grid;
+  gap: 10px;
+}
+
+.tayyibat-video-showcase {
+  gap: 20px;
+  scroll-margin-top: 92px;
+}
+
+.video-grid {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 22px;
+}
+
+.playlist-card,
+.video-card,
+.suggested-video-card,
+.content-panel,
+.form-panel {
+  border-color: rgba(222, 211, 189, 0.86);
+  border-radius: 20px;
+}
+
+.video-card {
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--shadow-sm);
+}
+
+.video-card:hover,
+.playlist-card:hover,
+.suggested-video-card:hover {
+  border-color: rgba(47, 107, 79, 0.35);
+  box-shadow: var(--shadow-md);
+}
+
+.thumbnail,
+.playlist-card-thumb,
+.suggested-video-thumb {
+  background: #e8dfce;
+}
+
+.thumbnail-empty,
+.suggested-video-empty {
+  background:
+    radial-gradient(circle at 25% 20%, rgba(244, 234, 212, 0.24), transparent 26%),
+    linear-gradient(135deg, #214d39, #7a5a32);
+}
+
+.play-badge {
+  right: 50%;
+  bottom: 50%;
+  width: 58px;
+  height: 58px;
+  background: rgba(47, 107, 79, 0.94);
+  border: 2px solid rgba(255, 255, 255, 0.78);
+  box-shadow: 0 16px 34px rgba(31, 42, 36, 0.26);
+  transform: translate(50%, 50%);
+  transition:
+    transform 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.video-card:hover .play-badge,
+.playlist-card:hover .play-badge {
+  background: var(--accent-strong);
+  box-shadow: 0 20px 44px rgba(31, 42, 36, 0.32);
+  transform: translate(50%, 50%) scale(1.06);
+}
+
+.type-badge {
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.short-badge,
+.type-badge.short {
+  color: #6f4d18;
+  background: var(--gold-soft);
+  border: 1px solid rgba(185, 138, 53, 0.28);
+}
+
+.video-card-body {
+  gap: 11px;
+  padding: 18px;
+}
+
+.video-title {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text);
   font-size: 17px;
   font-weight: 950;
+  line-height: 1.55;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
-.allowed-tayyibat-explanation-inner p {
+.video-meta {
+  color: #788176;
+}
+
+.tayyibat-allowed-section {
+  display: grid;
+  gap: 18px;
+  scroll-margin-top: 92px;
+}
+
+.tayyibat-allowed-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.tayyibat-allowed-card {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 250px;
+  overflow: hidden;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.tayyibat-allowed-card::before {
+  content: "";
+  position: absolute;
+  inset-inline: 18px;
+  top: 0;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(47, 107, 79, 0.42);
+}
+
+.tayyibat-allowed-icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  color: var(--accent-strong);
+  background: rgba(255, 255, 255, 0.54);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 16px;
+}
+
+.tayyibat-allowed-card h3 {
   margin: 0;
-  color: rgba(255, 255, 255, 0.86);
-  font-size: 15px;
-  font-weight: 650;
-  line-height: 1.85;
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+.tayyibat-allowed-card p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+.tayyibat-allowed-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.tayyibat-allowed-chips span {
+  padding: 7px 9px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.58);
+  border: 1px solid rgba(222, 211, 189, 0.72);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.tayyibat-allowed-card.allowed {
+  background: #e2efe7;
+  border-color: #bdd8c8;
+}
+
+.tayyibat-allowed-card.gold {
+  background: #f4ead4;
+  border-color: #dfc68f;
+}
+
+.tayyibat-allowed-card.earth {
+  background: #efe3cf;
+  border-color: #d7bea0;
+}
+
+.tayyibat-allowed-card.danger {
+  background: #f8e3df;
+  border-color: #e4b9b2;
+}
+
+.tayyibat-allowed-card.danger::before {
+  background: rgba(169, 68, 56, 0.44);
+}
+
+.tayyibat-slide-card {
+  border-color: rgba(244, 234, 212, 0.18);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(244, 234, 212, 0.16), transparent 26%),
+    radial-gradient(circle at 82% 18%, rgba(185, 138, 53, 0.18), transparent 30%),
+    linear-gradient(135deg, #153629, #214d39 50%, #0f231a);
+}
+
+.golden-rule-hero__shell {
+  border-color: rgba(185, 138, 53, 0.62);
+  background:
+    radial-gradient(circle at 14% 18%, rgba(244, 234, 212, 0.17), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(47, 107, 79, 0.2), transparent 28%),
+    linear-gradient(135deg, #11271e 0%, #214d39 48%, #0d1d16 100%);
+}
+
+.status-message.info {
+  border-color: rgba(47, 107, 79, 0.22);
+  background: var(--accent-soft);
+}
+
+.site-footer {
+  align-items: center;
+  padding: 26px clamp(16px, 4vw, 56px);
+  color: rgba(247, 244, 236, 0.78);
+  background: #1f2a24;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.site-footer div {
+  display: grid;
+  gap: 5px;
+  max-width: 680px;
+}
+
+.site-footer strong {
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.site-footer span {
+  line-height: 1.7;
+}
+
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-footer a {
+  color: #f4ead4;
+  font-weight: 850;
+}
+
+@media (max-width: 1180px) {
+  .tayyibat-allowed-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 920px) {
-  .allowed-tayyibat-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .hero-section--direct {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel {
+    order: -1;
+  }
+
+  .hero-visual-card {
+    min-height: 240px;
+  }
+}
+
+@media (max-width: 820px) {
+  .site-header {
+    position: sticky;
+    align-items: center;
+    flex-direction: row;
+    gap: 10px;
+    min-height: 62px;
+    padding: 10px 12px;
+  }
+
+  .brand {
+    font-size: 17px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .site-nav {
+    width: auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    overflow-x: auto;
+  }
+
+  .desktop-nav-link {
+    display: none;
+  }
+
+  .nav-cta {
+    display: inline-flex;
+    min-width: max-content;
+  }
+
+  .page-shell {
+    padding-top: 16px;
+  }
+}
+
+@media (max-width: 720px) {
+  .tayyibat-allowed-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tayyibat-allowed-card {
+    min-height: auto;
+  }
+
+  .video-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 620px) {
-  .allowed-tayyibat-section {
-    padding-block: 4px 22px;
+  .page-shell > section:not(.video-detail-page) {
+    width: min(100% - 20px, 1180px);
   }
 
-  .allowed-tayyibat-card {
-    padding: 20px 16px;
+  .hero-section--direct {
+    gap: 20px;
+    padding: 24px 18px;
     border-radius: 24px;
   }
 
-  .allowed-tayyibat-grid {
-    grid-template-columns: 1fr;
+  .hero-section--direct::before {
+    inset: 10px;
+    border-radius: 18px;
   }
 
-  .allowed-tayyibat-button {
-    min-height: 54px;
+  .hero-copy h1 {
+    font-size: 31px;
+    line-height: 1.28;
+  }
+
+  .hero-copy p {
+    font-size: 16px;
+    line-height: 1.8;
+  }
+
+  .hero-actions,
+  .form-actions,
+  .row-actions {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .hero-actions .button {
+    width: 100%;
+  }
+
+  .site-nav .nav-link,
+  .site-nav .nav-button,
+  .site-nav .button {
+    width: auto;
+  }
+
+  .nav-cta {
+    min-height: 40px;
+    padding-inline: 13px;
+    font-size: 13px;
+  }
+
+  .hero-visual-card {
+    min-height: 190px;
+  }
+
+  .hero-visual-play {
+    width: 82px;
+    height: 82px;
+  }
+
+  .latest-videos-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .play-badge {
+    width: 54px;
+    height: 54px;
+  }
+
+  .video-card-body {
+    padding: 16px;
+  }
+
+  .golden-rule-hero__shell {
+    border-radius: 24px;
+  }
+
+  .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .allowed-tayyibat-button,
-  .allowed-tayyibat-plus,
-  .allowed-tayyibat-explanation {
-    transition: none;
+
+
+/* =========================================================
+   Tayyibat Dev polish pass 2
+   Fixes based on browser screenshots: video-first layout, wider cards,
+   lighter natural sections, and compact secondary educational blocks.
+   ========================================================= */
+
+body {
+  background-color: var(--bg);
+}
+
+.page-shell {
+  padding-top: 18px;
+}
+
+.page-shell > section:not(.video-detail-page) {
+  width: min(1220px, calc(100% - 32px));
+}
+
+/* Ensure the direct watching message and videos always appear before secondary content. */
+.home-layout {
+  display: grid;
+  gap: clamp(22px, 3vw, 36px);
+}
+
+.home-layout > .hero-section--direct {
+  order: 1;
+}
+
+.home-layout > .tayyibat-video-showcase {
+  order: 2;
+}
+
+.home-layout > .tayyibat-allowed-section {
+  order: 3;
+}
+
+.home-layout > .golden-rule-hero {
+  order: 4;
+}
+
+.home-layout > .tayyibat-slider-section {
+  order: 5;
+}
+
+/* Make the first screen calmer and more direct. */
+.hero-section--direct {
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  padding: clamp(24px, 4vw, 48px);
+  border-radius: 28px;
+}
+
+.hero-copy h1 {
+  font-size: clamp(32px, 4.7vw, 58px);
+  line-height: 1.18;
+}
+
+.hero-copy p {
+  font-size: clamp(16px, 1.7vw, 18px);
+}
+
+.hero-trust-list {
+  margin-top: -2px;
+}
+
+.hero-visual-card {
+  min-height: clamp(210px, 28vw, 300px);
+}
+
+/* Give the latest videos the visual priority. */
+.tayyibat-video-showcase {
+  position: relative;
+  padding: clamp(20px, 3vw, 34px);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 8% 8%, rgba(47, 107, 79, 0.08), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(249, 246, 239, 0.9));
+  border: 1px solid rgba(222, 211, 189, 0.86);
+  border-radius: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tayyibat-video-showcase::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  opacity: 0.16;
+  pointer-events: none;
+  border-radius: 22px;
+  background:
+    linear-gradient(45deg, transparent 48%, rgba(185, 138, 53, 0.24) 49% 51%, transparent 52%),
+    linear-gradient(-45deg, transparent 48%, rgba(47, 107, 79, 0.18) 49% 51%, transparent 52%);
+  background-size: 42px 42px;
+}
+
+.tayyibat-video-showcase > * {
+  position: relative;
+}
+
+.latest-videos-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.latest-videos-head h2 {
+  margin: 0;
+  font-size: clamp(28px, 3.2vw, 42px);
+}
+
+.latest-videos-head p {
+  max-width: 620px;
+}
+
+/* Bigger cards: prevents the too-many-small-cards look seen in the screenshot. */
+.video-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 245px), 1fr));
+  gap: clamp(16px, 2vw, 24px);
+}
+
+@media (min-width: 1180px) {
+  .video-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.video-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+.video-card.short .thumbnail,
+.thumbnail.short {
+  aspect-ratio: 9 / 13;
+}
+
+.video-card.long .thumbnail,
+.thumbnail.long {
+  aspect-ratio: 16 / 9;
+}
+
+.thumbnail img {
+  transform: scale(1.001);
+  transition: transform 220ms ease;
+}
+
+.video-card:hover .thumbnail img {
+  transform: scale(1.035);
+}
+
+.play-badge {
+  width: 54px;
+  height: 54px;
+}
+
+.video-card-body {
+  display: grid;
+  gap: 8px;
+  padding: 15px 16px 16px;
+}
+
+.video-card-body p {
+  display: none;
+}
+
+.video-title {
+  min-height: 3.1em;
+  font-size: clamp(15px, 1.25vw, 17px);
+}
+
+.video-direct-watch {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 6px;
+  min-height: 27px;
+  padding: 0 10px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid rgba(47, 107, 79, 0.18);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.video-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+}
+
+/* Natural colored allowed-food cards should be bright, not a dark block. */
+.tayyibat-allowed-section {
+  padding: clamp(20px, 3vw, 34px);
+  background:
+    radial-gradient(circle at 95% 10%, rgba(185, 138, 53, 0.11), transparent 30%),
+    rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(222, 211, 189, 0.78);
+  border-radius: 28px;
+  box-shadow: var(--shadow-sm);
+}
+
+.tayyibat-allowed-section .section-head h2 {
+  margin: 0;
+  font-size: clamp(28px, 3vw, 40px);
+}
+
+.tayyibat-allowed-section .section-head p {
+  max-width: 680px;
+}
+
+.tayyibat-allowed-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 16px;
+}
+
+.tayyibat-allowed-card {
+  min-height: 224px;
+  border-radius: 24px;
+}
+
+/* Keep the golden rule as supporting content, not the dominant first screen. */
+.golden-rule-hero {
+  padding-block: 0;
+}
+
+.golden-rule-hero__shell {
+  min-height: auto !important;
+  gap: clamp(18px, 2.4vw, 28px);
+  padding: clamp(22px, 3.2vw, 38px);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 12% 16%, rgba(244, 234, 212, 0.16), transparent 26%),
+    radial-gradient(circle at 85% 18%, rgba(185, 138, 53, 0.16), transparent 28%),
+    linear-gradient(135deg, #1d3d2f 0%, #214d39 48%, #12251c 100%);
+}
+
+.golden-rule-hero__shell::before {
+  border-radius: 22px;
+}
+
+.golden-rule-hero__title {
+  font-size: clamp(34px, 4.2vw, 54px);
+  line-height: 1.2;
+}
+
+.golden-rule-hero__subtitle {
+  max-width: 760px;
+  font-size: clamp(15px, 1.6vw, 18px);
+}
+
+.golden-rule-hero__cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.golden-rule-hero__card,
+.golden-rule-hero__card:last-child {
+  min-height: 118px;
+  grid-column: auto;
+  grid-template-columns: auto 1fr;
+  padding: 18px;
+  border-radius: 20px;
+}
+
+.golden-rule-hero__icon {
+  width: 54px;
+  height: 54px;
+}
+
+.golden-rule-hero__number {
+  font-size: 28px;
+}
+
+.golden-rule-hero__card p {
+  max-width: none;
+  font-size: clamp(15px, 1.6vw, 18px);
+}
+
+/* The educational slider is optional secondary content, so make it compact. */
+.tayyibat-slider-section--wide {
+  padding-block: 0 8px;
+}
+
+.tayyibat-slider-section--wide .tayyibat-slide-card {
+  min-height: auto;
+  padding: clamp(20px, 3vw, 34px);
+  border-radius: 26px;
+}
+
+.tayyibat-slider-section--wide .tayyibat-slide-content h1 {
+  font-size: clamp(34px, 4.2vw, 54px);
+}
+
+.tayyibat-slider-section--wide .tayyibat-slide-visual {
+  min-height: 240px;
+}
+
+/* Mobile-first polishing */
+@media (max-width: 920px) {
+  .hero-panel {
+    order: 0;
+  }
+
+  .latest-videos-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .golden-rule-hero__cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .site-header {
+    position: sticky;
+    top: 0;
+    min-height: 60px;
+  }
+
+  .site-nav {
+    scrollbar-width: none;
+  }
+
+  .site-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-cta {
+    display: inline-flex !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .page-shell {
+    padding-top: 12px;
+  }
+
+  .page-shell > section:not(.video-detail-page) {
+    width: min(100% - 18px, 1220px);
+  }
+
+  .hero-section--direct,
+  .tayyibat-video-showcase,
+  .tayyibat-allowed-section,
+  .golden-rule-hero__shell {
+    border-radius: 22px;
+  }
+
+  .hero-section--direct,
+  .tayyibat-video-showcase,
+  .tayyibat-allowed-section {
+    padding: 18px;
+  }
+
+  .hero-section--direct {
+    gap: 18px;
+  }
+
+  .hero-copy h1 {
+    font-size: 29px;
+  }
+
+  .hero-actions .button {
+    min-height: 44px;
+  }
+
+  .video-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .video-card.short .thumbnail,
+  .thumbnail.short {
+    aspect-ratio: 9 / 12.5;
+  }
+
+  .golden-rule-hero__shell {
+    padding: 20px 16px;
+  }
+
+  .golden-rule-hero__title {
+    font-size: 32px;
+  }
+
+  .golden-rule-hero__card {
+    min-height: auto;
+  }
+
+  .tayyibat-slider-section--wide .tayyibat-slide-card {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+.playlist-admin-hint,
+.playlist-admin-note {
+  border-style: dashed;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.playlist-admin-note {
+  margin: 10px 0;
+  text-align: center;
+}
+
+/* =========================================================
+   Tayyibat Dev V6
+   Fix homepage playlist alignment after playlists started showing.
+   Goals: separate "featured playlists" from the general video grid,
+   prevent tiny right-clustered cards, and keep a calm centered layout.
+   ========================================================= */
+
+.tayyibat-video-showcase {
+  display: grid;
+  gap: clamp(20px, 2.6vw, 30px);
+}
+
+.featured-playlists-panel,
+.latest-videos-grid-panel {
+  position: relative;
+  display: grid;
+  gap: clamp(16px, 2vw, 22px);
+  min-width: 0;
+  padding: clamp(16px, 2.4vw, 24px);
+  border: 1px solid rgba(222, 211, 189, 0.72);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.featured-playlists-panel {
+  background:
+    radial-gradient(circle at 0% 10%, rgba(185, 138, 53, 0.09), transparent 26%),
+    rgba(255, 252, 246, 0.78);
+}
+
+.featured-playlists-head,
+.latest-grid-head {
+  margin-bottom: 0;
+}
+
+.featured-playlists-head h2,
+.latest-grid-head h2 {
+  margin: 7px 0 0;
+  font-size: clamp(22px, 2.4vw, 32px);
+}
+
+.featured-playlists-head p {
+  max-width: 720px;
+}
+
+.playlist-stack {
+  gap: clamp(16px, 2vw, 22px);
+}
+
+.playlist-section {
+  gap: 16px;
+  padding: clamp(14px, 2vw, 22px);
+  border: 1px solid rgba(222, 211, 189, 0.72);
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(247, 244, 236, 0.68));
+}
+
+.playlist-section-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 0;
+}
+
+.playlist-section-head h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(20px, 2vw, 28px);
+  line-height: 1.35;
+}
+
+.playlist-section-head p {
+  max-width: 660px;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.playlist-count-badge {
+  display: inline-flex;
+  min-width: max-content;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 0 12px;
+  color: #6f4d18;
+  background: var(--gold-soft);
+  border: 1px solid rgba(185, 138, 53, 0.34);
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.playlist-slider {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 205px), 232px));
+  justify-content: center;
+  align-items: stretch;
+  gap: clamp(14px, 1.8vw, 20px) !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.playlist-card {
+  width: 100%;
+  min-width: 0;
+  max-width: 232px;
+  justify-self: center;
+  border-radius: 22px;
+}
+
+.playlist-card-thumb.short {
+  aspect-ratio: 9 / 12.4;
+}
+
+.playlist-card-thumb.long {
+  aspect-ratio: 16 / 9;
+}
+
+.playlist-card-body {
+  gap: 7px;
+  padding: 13px 14px 14px;
+}
+
+.playlist-card-body h3 {
+  display: -webkit-box;
+  min-height: 2.9em;
+  overflow: hidden;
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.playlist-card-body p {
+  display: none;
+}
+
+.playlist-card .video-meta {
+  justify-content: flex-start;
+  color: var(--muted);
+}
+
+.latest-videos-grid-panel .video-grid {
+  margin-top: 0;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  justify-content: center;
+  align-items: start;
+}
+
+@media (min-width: 1180px) {
+  .video-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .featured-playlists-panel,
+  .latest-videos-grid-panel {
+    padding: 15px;
+    border-radius: 20px;
+  }
+
+  .playlist-section {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .playlist-section-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .playlist-count-badge {
+    width: fit-content;
+  }
+
+  .playlist-slider {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 178px), 1fr));
+  }
+
+  .playlist-card {
+    max-width: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .featured-playlists-head h2,
+  .latest-grid-head h2 {
+    font-size: 22px;
+  }
+
+  .playlist-slider {
+    grid-template-columns: 1fr;
+  }
+
+  .playlist-card-thumb.short {
+    aspect-ratio: 9 / 12;
+  }
+
+  .playlist-card-body h3 {
+    min-height: auto;
   }
 }

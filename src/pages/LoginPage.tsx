@@ -62,8 +62,8 @@ export function LoginPage() {
     <section className="auth-layout">
       <div className="auth-copy">
         <span className="eyebrow">وصول آمن</span>
-        <h1>ادخل إلى حسابك وتابع الفيديوهات والتعليقات.</h1>
-        <p>تسجيل الدخول يفتح مشاهدة الفيديوهات والتفاعل معها ويعيدك إلى الصفحة التي طلبتها.</p>
+        <h1>دخول الإدارة والتفاعل فقط.</h1>
+        <p>مشاهدة الفيديوهات متاحة للجميع بدون حساب. استخدم الدخول لإدارة المحتوى أو التعليق والإعجاب فقط.</p>
       </div>
 
       <div className="form-panel">
@@ -101,9 +101,7 @@ export function LoginPage() {
               <LogIn size={17} aria-hidden="true" />
               {isSubmitting ? "جار الدخول..." : "دخول"}
             </button>
-            <Link className="button ghost" to="/register">
-              حساب جديد
-            </Link>
+
           </div>
         </form>
       </div>
