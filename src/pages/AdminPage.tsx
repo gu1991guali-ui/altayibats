@@ -1,4 +1,4 @@
-import { GripVertical, Heart, MessageCircle, Pencil, RefreshCw, Trash2, UploadCloud } from "lucide-react";
+import { GripVertical, Pencil, RefreshCw, Trash2, UploadCloud } from "lucide-react";
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/AuthProvider";
@@ -20,6 +20,31 @@ type AdminPageCache = {
   playlists: AdminPlaylist[];
 };
 
+type AnalyticsTopPage = {
+  path: string;
+  page_views: number;
+  visitors: number;
+};
+
+type AnalyticsLatestVisit = {
+  path: string;
+  visitor_id: string;
+  created_at: string;
+};
+
+type SiteAnalyticsSummary = {
+  total_page_views: number;
+  total_visitors: number;
+  page_views_today: number;
+  visitors_today: number;
+  page_views_7_days: number;
+  visitors_7_days: number;
+  page_views_30_days: number;
+  visitors_30_days: number;
+  top_pages: AnalyticsTopPage[];
+  latest_visits: AnalyticsLatestVisit[];
+};
+
 let adminPageCache: AdminPageCache | null = null;
 
 function randomId() {
@@ -37,6 +62,70 @@ function errorMessage(error: unknown) {
 function databaseSetupMessage(action: string, details?: string) {
   const suffix = details ? ` التفاصيل التقنية: ${details}` : "";
   return `${action} شغّل ملف database/01_REPAIR_PLAYLISTS_SCHEMA_CACHE.sql من Supabase SQL Editor، ثم أعد تحميل صفحة الإدارة واضغط تحديث.${suffix}`;
+}
+
+function analyticsSetupMessage(details?: string) {
+  const suffix = details ? ` التفاصيل التقنية: ${details}` : "";
+  return `عداد الزيارات غير مفعّل بعد. شغّل ملف database/02_ADD_VISIT_ANALYTICS.sql من Supabase SQL Editor، ثم أعد تحميل لوحة الإدارة.${suffix}`;
+}
+
+function normalizeAnalytics(value: unknown): SiteAnalyticsSummary {
+  const data = (value ?? {}) as Partial<SiteAnalyticsSummary>;
+  const pageViewsToday = Number(data.page_views_today ?? 0);
+  const visitorsToday = Number(data.visitors_today ?? 0);
+  const pageViews7Days = Number(data.page_views_7_days ?? 0);
+  const visitors7Days = Number(data.visitors_7_days ?? 0);
+  const pageViews30Days = Number(data.page_views_30_days ?? 0);
+  const visitors30Days = Number(data.visitors_30_days ?? 0);
+
+  return {
+    total_page_views: Math.max(Number(data.total_page_views ?? 0), pageViews30Days),
+    total_visitors: Math.max(Number(data.total_visitors ?? 0), visitors30Days),
+    page_views_today: pageViewsToday,
+    visitors_today: visitorsToday,
+    page_views_7_days: pageViews7Days,
+    visitors_7_days: visitors7Days,
+    page_views_30_days: pageViews30Days,
+    visitors_30_days: visitors30Days,
+    top_pages: Array.isArray(data.top_pages) ? data.top_pages : [],
+    latest_visits: Array.isArray(data.latest_visits) ? data.latest_visits : []
+  };
+}
+
+function formatAdminNumber(value: number) {
+  return value.toLocaleString("ar-EG");
+}
+
+function formatAdminDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("ar-EG", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(date);
+}
+
+function readablePath(path: string, videos: VideoSummary[]) {
+  if (!path || path === "/") {
+    return "الصفحة الرئيسية";
+  }
+
+  if (path === "/legal") {
+    return "الخصوصية والشروط";
+  }
+
+  const videoId = path.match(/^\/videos\/([^/?#]+)/)?.[1];
+
+  if (videoId) {
+    const video = videos.find((item) => item.id === videoId);
+    return video ? `فيديو: ${video.title}` : "صفحة فيديو";
+  }
+
+  return path;
 }
 
 async function uploadObject(bucket: "videos" | "thumbnails", path: string, file: File) {
@@ -78,6 +167,31 @@ export function AdminPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [analytics, setAnalytics] = useState<SiteAnalyticsSummary | null>(null);
+  const [analyticsError, setAnalyticsError] = useState("");
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+
+  const loadAnalytics = useCallback(async () => {
+    if (!isSupabaseConfigured || !isAdmin) {
+      setAnalytics(null);
+      return;
+    }
+
+    setIsAnalyticsLoading(true);
+    setAnalyticsError("");
+
+    const { data, error: analyticsLoadError } = await supabase.rpc("get_site_analytics");
+
+    if (analyticsLoadError) {
+      setAnalytics(null);
+      setAnalyticsError(analyticsSetupMessage(analyticsLoadError.message));
+      setIsAnalyticsLoading(false);
+      return;
+    }
+
+    setAnalytics(normalizeAnalytics(data));
+    setIsAnalyticsLoading(false);
+  }, [isAdmin]);
 
   const loadVideos = useCallback(async (force = false) => {
     if (adminPageCache && !force) {
@@ -105,7 +219,7 @@ export function AdminPage() {
       return [];
     }
 
-    const nextVideos = await enrichVideos((data ?? []) as VideoRecord[]);
+    const nextVideos = await enrichVideos((data ?? []) as VideoRecord[], false);
     setVideos(nextVideos);
     adminPageCache = { videos: nextVideos, playlists: adminPageCache?.playlists ?? [] };
     setIsLoading(false);
@@ -163,7 +277,7 @@ export function AdminPage() {
 
     if (videoIds.length > 0) {
       const { data: videoRows } = await supabase.from("videos").select("*").in("id", videoIds);
-      (await enrichVideos((videoRows ?? []) as VideoRecord[])).forEach((video) => videoMap.set(video.id, video));
+      (await enrichVideos((videoRows ?? []) as VideoRecord[], false)).forEach((video) => videoMap.set(video.id, video));
     }
 
     const nextPlaylists = playlistRecords.map((playlist) => ({
@@ -181,11 +295,12 @@ export function AdminPage() {
 
   const reloadAll = useCallback(async (force = false) => {
     const [nextVideos, nextPlaylists] = await Promise.all([loadVideos(force), loadPlaylists(force)]);
+    await loadAnalytics();
 
     if (isSupabaseConfigured && isAdmin) {
       adminPageCache = { videos: nextVideos, playlists: nextPlaylists };
     }
-  }, [isAdmin, loadPlaylists, loadVideos]);
+  }, [isAdmin, loadAnalytics, loadPlaylists, loadVideos]);
 
   useEffect(() => {
     if (isSupabaseConfigured && !authLoading && !user) {
@@ -550,8 +665,8 @@ export function AdminPage() {
     <section className="overflow-x-hidden" dir="rtl">
       <div className="page-heading admin-heading">
         <span className="eyebrow">لوحة الإدارة</span>
-        <h1>إدارة مكتبة الفيديوهات وقوائم التشغيل</h1>
-        <p>ارفع المحتوى، عدل بياناته، وأنشئ قوائم تشغيل مرتبة تظهر في الصفحة الرئيسية.</p>
+        <h1>إدارة مكتبة الفيديوهات والزيارات</h1>
+        <p>ارفع المحتوى، عدل بياناته، وأنشئ قوائم تشغيل، وتابع عدد زوار الموقع مباشرة.</p>
       </div>
 
       {error ? <StatusMessage tone="error">{error}</StatusMessage> : null}
@@ -630,6 +745,110 @@ export function AdminPage() {
         </aside>
 
         <div className="admin-main-stack overflow-x-hidden">
+          <section className="content-panel analytics-panel overflow-x-hidden">
+            <div className="section-head compact">
+              <div>
+                <span className="eyebrow">إحصاءات الزوار</span>
+                <h2>عداد زيارات الموقع</h2>
+                <p>يعرض الزيارات العامة فقط، ولا يحتسب صفحات الإدارة أو تسجيل الدخول.</p>
+              </div>
+              <button className="button secondary button-small transition-all duration-200" type="button" onClick={() => loadAnalytics()}>
+                <RefreshCw size={16} aria-hidden="true" />
+                تحديث العداد
+              </button>
+            </div>
+
+            {analyticsError ? <StatusMessage tone="error">{analyticsError}</StatusMessage> : null}
+
+            {isAnalyticsLoading && !analytics ? (
+              <div className="empty-state compact-empty">جار تحميل إحصاءات الزوار...</div>
+            ) : null}
+
+            {analytics ? (
+              <>
+                <div className="analytics-stat-grid" aria-label="ملخص زيارات الموقع">
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">ز</span>
+                    <strong>{formatAdminNumber(analytics.total_visitors)}</strong>
+                    <p>إجمالي الزوار</p>
+                  </article>
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">ك</span>
+                    <strong>{formatAdminNumber(analytics.total_page_views)}</strong>
+                    <p>إجمالي الزيارات</p>
+                  </article>
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">ي</span>
+                    <strong>{formatAdminNumber(analytics.visitors_today)}</strong>
+                    <p>زوار اليوم</p>
+                  </article>
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">ص</span>
+                    <strong>{formatAdminNumber(analytics.page_views_today)}</strong>
+                    <p>زيارات اليوم</p>
+                  </article>
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">7</span>
+                    <strong>{formatAdminNumber(analytics.visitors_7_days)}</strong>
+                    <p>زوار آخر 7 أيام</p>
+                  </article>
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">↗</span>
+                    <strong>{formatAdminNumber(analytics.page_views_7_days)}</strong>
+                    <p>زيارات آخر 7 أيام</p>
+                  </article>
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">30</span>
+                    <strong>{formatAdminNumber(analytics.visitors_30_days)}</strong>
+                    <p>زوار آخر 30 يوم</p>
+                  </article>
+                  <article className="analytics-stat-card">
+                    <span className="analytics-stat-icon">م</span>
+                    <strong>{formatAdminNumber(analytics.page_views_30_days)}</strong>
+                    <p>زيارات آخر 30 يوم</p>
+                  </article>
+                </div>
+
+                <div className="analytics-details-grid">
+                  <div className="analytics-box">
+                    <h3>الصفحات الأكثر زيارة</h3>
+                    {analytics.top_pages.length === 0 ? (
+                      <p className="analytics-muted">لا توجد زيارات مسجلة بعد.</p>
+                    ) : (
+                      <ol className="analytics-list">
+                        {analytics.top_pages.map((page) => (
+                          <li key={page.path}>
+                            <div>
+                              <strong>{readablePath(page.path, videos)}</strong>
+                              <span>{page.path}</span>
+                            </div>
+                            <em>{formatAdminNumber(page.page_views)} زيارة</em>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </div>
+
+                  <div className="analytics-box">
+                    <h3>آخر الزيارات</h3>
+                    {analytics.latest_visits.length === 0 ? (
+                      <p className="analytics-muted">لا توجد زيارات حديثة.</p>
+                    ) : (
+                      <div className="analytics-list latest">
+                        {analytics.latest_visits.map((visit, index) => (
+                          <div className="analytics-latest-row" key={`${visit.created_at}-${visit.visitor_id}-${index}`}>
+                            <strong>{readablePath(visit.path, videos)}</strong>
+                            <span>{formatAdminDate(visit.created_at)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            ) : null}
+          </section>
+
           <section className="content-panel overflow-x-hidden">
             <div className="section-head compact">
               <div>
@@ -764,19 +983,14 @@ export function AdminPage() {
               {videos.map((video) => (
                 <article className="admin-video-row" key={video.id}>
                   <div className={`admin-thumb ${video.video_type === "short" ? "short aspect-[9/16]" : "long aspect-video"}`}>
-                    {video.thumbnail_url ? <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" /> : null}
+                    {video.thumbnail_url ? <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" loading="lazy" decoding="async" /> : null}
                   </div>
                   <div className="admin-row-body">
                     <h3>{video.title}</h3>
                     {video.description ? <p>{video.description}</p> : null}
                     <div className="stats-line">
                       <span className={video.video_type === "short" ? "type-badge short" : "type-badge"}>{video.video_type === "short" ? "عمودي" : "أفقي"}</span>
-                      <span>
-                        <Heart size={15} aria-hidden="true" /> {video.likes_count} إعجاب
-                      </span>
-                      <span>
-                        <MessageCircle size={15} aria-hidden="true" /> {video.comments_count} تعليق
-                      </span>
+                      <span>الإعجابات والتعليقات تظهر داخل صفحة الفيديو</span>
                     </div>
                     <div className="row-actions flex-wrap gap-3">
                       <button className="button ghost button-small transition-all duration-200" type="button" onClick={() => startEdit(video)}>

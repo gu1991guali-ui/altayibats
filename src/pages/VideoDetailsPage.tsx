@@ -104,7 +104,7 @@ function SuggestedVideoCard({ video }: { video: VideoSummary }) {
     <Link className="suggested-video-card transition-all duration-200" to={`/videos/${video.id}`}>
       <div className={`suggested-video-thumb ${isShortVideo ? "short aspect-[9/16]" : "long aspect-video"}`}>
         {video.thumbnail_url ? (
-          <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" />
+          <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" loading="lazy" decoding="async" />
         ) : (
           <div className="suggested-video-empty">
             <Play size={24} aria-hidden="true" />
@@ -115,16 +115,18 @@ function SuggestedVideoCard({ video }: { video: VideoSummary }) {
       <div className="suggested-video-body">
         <span className={isShortVideo ? "type-badge short" : "type-badge"}>{getVideoCategory(video)}</span>
         <h3>{video.title}</h3>
-        <div className="video-meta suggested-video-meta">
-          <span>
-            <Heart size={14} aria-hidden="true" />
-            {video.likes_count}
-          </span>
-          <span>
-            <MessageCircle size={14} aria-hidden="true" />
-            {video.comments_count}
-          </span>
-        </div>
+        {video.likes_count > 0 || video.comments_count > 0 ? (
+          <div className="video-meta suggested-video-meta">
+            <span>
+              <Heart size={14} aria-hidden="true" />
+              {video.likes_count}
+            </span>
+            <span>
+              <MessageCircle size={14} aria-hidden="true" />
+              {video.comments_count}
+            </span>
+          </div>
+        ) : null}
       </div>
     </Link>
   );
@@ -180,7 +182,7 @@ export function VideoDetailsPage() {
       return [];
     }
 
-    const enriched = await enrichVideos((data ?? []) as VideoRecord[]);
+    const enriched = await enrichVideos((data ?? []) as VideoRecord[], false);
     const currentCategory = getVideoCategory(currentVideo);
     const sameCategory = enriched.filter((item) => getVideoCategory(item) === currentCategory);
     const fallback = enriched.filter((item) => getVideoCategory(item) !== currentCategory);

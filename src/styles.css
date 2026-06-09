@@ -3915,3 +3915,405 @@ body {
     min-height: auto;
   }
 }
+
+
+/* =========================================================
+   Tayyibat Dev V7
+   Compact playlist rows: no centered tiny cards, no wasted empty space.
+   ========================================================= */
+
+.tayyibat-video-showcase {
+  gap: clamp(18px, 2.2vw, 26px);
+}
+
+.latest-videos-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: clamp(14px, 2vw, 20px);
+  border: 1px solid rgba(222, 211, 189, 0.62);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(185, 138, 53, 0.08), transparent 28%),
+    rgba(255, 255, 255, 0.62);
+}
+
+.featured-playlists-panel {
+  padding: clamp(14px, 2vw, 20px);
+  border-radius: 22px;
+}
+
+.featured-playlists-head {
+  padding-bottom: 2px;
+}
+
+.featured-playlists-head h2 {
+  font-size: clamp(23px, 2.2vw, 30px);
+}
+
+.playlist-stack {
+  gap: 14px;
+}
+
+.playlist-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+  padding: clamp(14px, 1.8vw, 18px);
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(250, 247, 239, 0.76));
+}
+
+.playlist-section-head {
+  width: 100%;
+  max-width: 100%;
+}
+
+.playlist-section-head h2 {
+  font-size: clamp(20px, 2vw, 27px);
+}
+
+.playlist-section-head p {
+  max-width: 820px;
+}
+
+.playlist-slider {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(215px, 240px));
+  justify-content: start;
+  align-items: start;
+  gap: clamp(14px, 1.6vw, 18px) !important;
+  width: 100%;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.playlist-slider--single {
+  grid-template-columns: minmax(230px, 280px);
+}
+
+.playlist-slider--double {
+  grid-template-columns: repeat(2, minmax(215px, 240px));
+}
+
+.playlist-card {
+  width: 100%;
+  min-width: 0 !important;
+  max-width: none;
+  justify-self: stretch;
+  border-radius: 18px;
+}
+
+.playlist-card-thumb.short {
+  aspect-ratio: 9 / 13;
+}
+
+.playlist-slider--single .playlist-card-thumb.short {
+  aspect-ratio: 9 / 11.5;
+}
+
+.playlist-card-body {
+  padding: 12px 13px 13px;
+}
+
+.playlist-card-body h3 {
+  min-height: auto;
+  font-size: 14.5px;
+}
+
+.playlist-card .play-badge,
+.video-card .play-badge {
+  width: 52px;
+  height: 52px;
+}
+
+.latest-videos-grid-panel {
+  padding: clamp(14px, 2vw, 20px);
+  border-radius: 22px;
+}
+
+.latest-videos-grid-panel .video-grid {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: clamp(14px, 1.8vw, 20px);
+}
+
+@media (min-width: 960px) {
+  .playlist-section--single {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+    align-items: center;
+  }
+
+  .playlist-section--single .playlist-section-head {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .playlist-section--single .playlist-slider {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .playlist-section--double {
+    grid-template-columns: minmax(0, 1fr) minmax(450px, 498px);
+    align-items: center;
+  }
+
+  .playlist-section--double .playlist-section-head {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .playlist-section--double .playlist-slider {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+@media (min-width: 1180px) {
+  .latest-videos-grid-panel .video-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .latest-videos-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .playlist-slider,
+  .playlist-slider--single,
+  .playlist-slider--double {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+    justify-content: stretch;
+  }
+
+  .playlist-card-thumb.short,
+  .playlist-slider--single .playlist-card-thumb.short {
+    aspect-ratio: 9 / 12;
+  }
+}
+
+@media (max-width: 560px) {
+  .featured-playlists-panel,
+  .latest-videos-grid-panel,
+  .latest-videos-head {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .playlist-slider,
+  .playlist-slider--single,
+  .playlist-slider--double {
+    grid-template-columns: 1fr;
+  }
+
+  .playlist-card .play-badge,
+  .video-card .play-badge {
+    width: 48px;
+    height: 48px;
+  }
+}
+
+
+.analytics-panel {
+  background:
+    radial-gradient(circle at 12% 18%, rgba(15, 118, 110, 0.08), transparent 28%),
+    radial-gradient(circle at 86% 0%, rgba(180, 83, 9, 0.09), transparent 26%),
+    rgba(255, 255, 255, 0.94);
+}
+
+.analytics-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.analytics-stat-card {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 16px;
+  background: #ffffff;
+  border: 1px solid rgba(216, 225, 221, 0.95);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 28px rgba(22, 32, 28, 0.06);
+}
+
+.analytics-stat-icon {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  border: 1px solid #b6ddd9;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.analytics-stat-card strong {
+  color: var(--text);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.analytics-stat-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.analytics-details-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.85fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.analytics-box {
+  min-width: 0;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.analytics-box h3 {
+  margin: 0 0 12px;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.analytics-muted {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.analytics-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.analytics-list li,
+.analytics-latest-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(216, 225, 221, 0.88);
+  border-radius: var(--radius);
+}
+
+.analytics-list li div,
+.analytics-latest-row {
+  min-width: 0;
+}
+
+.analytics-list strong,
+.analytics-latest-row strong {
+  display: block;
+  overflow: hidden;
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analytics-list span,
+.analytics-latest-row span {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analytics-list em {
+  flex: 0 0 auto;
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.analytics-list.latest {
+  gap: 8px;
+}
+
+.analytics-latest-row {
+  display: grid;
+  justify-content: stretch;
+}
+
+
+@media (max-width: 900px) {
+  .analytics-stat-grid,
+  .analytics-details-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .analytics-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .analytics-stat-card {
+    padding: 13px;
+  }
+
+  .analytics-stat-card strong {
+    font-size: 26px;
+  }
+
+  .analytics-list li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+
+/* Tayyibat Dev V10: progressive loading for homepage videos */
+.load-more-videos {
+  display: grid;
+  place-items: center;
+  gap: 10px;
+  margin-top: clamp(18px, 3vw, 28px);
+  padding-top: clamp(12px, 2vw, 18px);
+  border-top: 1px dashed rgba(222, 211, 189, 0.78);
+  text-align: center;
+}
+
+.load-more-videos p,
+.all-videos-loaded {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.all-videos-loaded {
+  margin-top: clamp(18px, 3vw, 28px);
+  padding: 12px 14px;
+  border: 1px solid rgba(166, 217, 211, 0.76);
+  border-radius: 999px;
+  background: rgba(217, 240, 237, 0.55);
+  text-align: center;
+  color: var(--accent-strong);
+  font-weight: 800;
+}

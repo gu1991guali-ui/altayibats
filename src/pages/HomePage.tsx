@@ -12,9 +12,13 @@ type HomePageCache = {
   cacheKey: string;
   videos: VideoSummary[];
   playlists: PlaylistWithVideos[];
+  hasMoreVideos: boolean;
 };
 
 let homePageCache: HomePageCache | null = null;
+
+const HOME_VIDEO_LIMIT = 24;
+const HOME_VIDEO_PAGE_SIZE = 12;
 
 const achievementStats = [
   { label: "مشروع منجز", value: 450 },
@@ -55,9 +59,9 @@ const tayyibatSlides = [
     badge: "باعتدال",
     title: "البروتينات المسموحة",
     description:
-      "لحم الضأن، لحم الجمل، الأرانب، الحمام، السمان، والسمك البحري البري. تؤكل هذه البروتينات باعتدال وليست بشكل يومي.",
+      "لحم الضأن، لحم الجمل، لحم الماعز، الحمام، السمان، والسمك البحري البري. تؤكل هذه البروتينات باعتدال وليست بشكل يومي.",
     highlight: "تؤكل باعتدال وليس يوميا",
-    chips: ["ضأن", "جمل", "أرانب", "سمك بحري"],
+    chips: ["ضأن", "جمل", "لحم الماعز", "سمك بحري"],
     tone: "orange"
   },
   {
@@ -97,7 +101,7 @@ const allowedFoodGroups = [
   {
     title: "البروتينات",
     description: "اختيارات بروتينية تؤكل باعتدال وليس بشكل يومي.",
-    items: ["لحم الضأن", "لحم الجمل", "السمك البحري", "الأرانب"],
+    items: ["لحم الضأن", "لحم الجمل", "السمك البحري", "لحم الماعز"],
     tone: "allowed",
     icon: <Fish size={24} aria-hidden="true" />
   },
@@ -397,7 +401,9 @@ export function HomePage() {
   const cachedHomePage = homePageCache?.cacheKey === cacheKey ? homePageCache : null;
   const [videos, setVideos] = useState<VideoSummary[]>(cachedHomePage?.videos ?? []);
   const [playlists, setPlaylists] = useState<PlaylistWithVideos[]>(cachedHomePage?.playlists ?? []);
+  const [hasMoreVideos, setHasMoreVideos] = useState(cachedHomePage?.hasMoreVideos ?? false);
   const [isLoading, setIsLoading] = useState(!cachedHomePage);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
 
@@ -415,6 +421,7 @@ export function HomePage() {
     if (cached && !force) {
       setVideos(cached.videos);
       setPlaylists(cached.playlists);
+      setHasMoreVideos(cached.hasMoreVideos);
       setIsLoading(false);
       return;
     }
@@ -428,8 +435,12 @@ export function HomePage() {
     setError("");
 
     const [videoResult, playlistResult] = await Promise.allSettled([
-      supabase.from("videos").select("*").order("created_at", { ascending: false }),
-      fetchPlaylistsWithVideos(true)
+      supabase
+        .from("videos")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(0, HOME_VIDEO_LIMIT),
+      fetchPlaylistsWithVideos(false)
     ]);
 
     if (videoResult.status === "rejected" || videoResult.value.error) {
@@ -437,6 +448,7 @@ export function HomePage() {
       if (!cached) {
         setVideos([]);
         setPlaylists([]);
+        setHasMoreVideos(false);
       }
       setIsLoading(false);
       return;
@@ -448,18 +460,69 @@ export function HomePage() {
       nextPlaylists = playlistResult.value;
     }
 
-    const enriched = await enrichVideos((videoResult.value.data ?? []) as VideoRecord[], true);
-    homePageCache = { cacheKey, videos: enriched, playlists: nextPlaylists };
+    const loadedRows = ((videoResult.value.data ?? []) as VideoRecord[]);
+    const nextHasMoreVideos = loadedRows.length > HOME_VIDEO_LIMIT;
+    const enriched = await enrichVideos(loadedRows.slice(0, HOME_VIDEO_LIMIT), false);
+    homePageCache = { cacheKey, videos: enriched, playlists: nextPlaylists, hasMoreVideos: nextHasMoreVideos };
     setVideos(enriched);
     setPlaylists(nextPlaylists);
+    setHasMoreVideos(nextHasMoreVideos);
     setIsLoading(false);
   }, [cacheKey]);
+
+  const loadMoreVideos = useCallback(async () => {
+    if (!isSupabaseConfigured || isLoadingMore || !hasMoreVideos) {
+      return;
+    }
+
+    setIsLoadingMore(true);
+    setError("");
+
+    const from = videos.length;
+    const to = from + HOME_VIDEO_PAGE_SIZE;
+
+    const { data, error: loadMoreError } = await supabase
+      .from("videos")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (loadMoreError) {
+      setError("تعذر تحميل المزيد من الفيديوهات. حاول مرة أخرى.");
+      setIsLoadingMore(false);
+      return;
+    }
+
+    const loadedRows = (data ?? []) as VideoRecord[];
+    const nextHasMoreVideos = loadedRows.length > HOME_VIDEO_PAGE_SIZE;
+    const nextBatch = await enrichVideos(loadedRows.slice(0, HOME_VIDEO_PAGE_SIZE), false);
+
+    setVideos((currentVideos) => {
+      const knownIds = new Set(currentVideos.map((video) => video.id));
+      const mergedVideos = [
+        ...currentVideos,
+        ...nextBatch.filter((video) => !knownIds.has(video.id))
+      ];
+
+      homePageCache = {
+        cacheKey,
+        videos: mergedVideos,
+        playlists,
+        hasMoreVideos: nextHasMoreVideos
+      };
+
+      return mergedVideos;
+    });
+
+    setHasMoreVideos(nextHasMoreVideos);
+    setIsLoadingMore(false);
+  }, [cacheKey, hasMoreVideos, isLoadingMore, playlists, videos.length]);
 
   const visiblePlaylists = playlists.filter((playlist) => playlist.videos.length > 0);
 
   useEffect(() => {
     if (!authLoading) {
-      void loadVideos(true);
+      void loadVideos(false);
     }
   }, [authLoading, loadVideos]);
 
@@ -520,7 +583,7 @@ export function HomePage() {
           <div className="hero-stats" aria-label="إحصائيات مختصرة">
             <div className="hero-stat">
               <strong>{videos.length}</strong>
-              <span>فيديو متاح</span>
+              <span>فيديو معروض</span>
             </div>
             <div className="hero-stat">
               <strong>بدون</strong>
@@ -551,8 +614,8 @@ export function HomePage() {
                 <PlayCircle size={16} aria-hidden="true" />
                 المشاهدة المباشرة
               </span>
-              <h2>أحدث الفيديوهات</h2>
-              <p>اختر أي فيديو وابدأ المشاهدة فوراً بدون تسجيل أو تحويل لصفحة دخول.</p>
+              <h2>المشاهدة المباشرة</h2>
+              <p>ابدأ من القوائم المختارة حسب الموضوع، أو تصفح أحدث الفيديوهات مباشرة بدون تسجيل. تم تخفيف الصفحة لتفتح أسرع على الجوال.</p>
             </div>
 
             <button className="button secondary button-small transition-all duration-200" type="button" onClick={() => loadVideos(true)}>
@@ -595,7 +658,8 @@ export function HomePage() {
                   <PlayCircle size={16} aria-hidden="true" />
                   المكتبة العامة
                 </span>
-                <h2>كل الفيديوهات</h2>
+                <h2>أحدث الفيديوهات</h2>
+                <p>نعرض أول {HOME_VIDEO_LIMIT} فيديو بسرعة، ويمكنك تحميل المزيد تدريجياً بدون إبطاء الصفحة.</p>
               </div>
             </div>
 
@@ -604,9 +668,26 @@ export function HomePage() {
             {videos.length > 0 ? (
               <div className="video-grid">
                 {videos.map((video) => (
-                  <VideoCard key={video.id} video={video} canOpen showStats />
+                  <VideoCard key={video.id} video={video} canOpen showStats={false} />
                 ))}
               </div>
+            ) : null}
+
+            {hasMoreVideos ? (
+              <div className="load-more-videos">
+                <button
+                  className="button secondary transition-all duration-200"
+                  type="button"
+                  onClick={() => void loadMoreVideos()}
+                  disabled={isLoadingMore}
+                >
+                  <PlayCircle size={17} aria-hidden="true" />
+                  {isLoadingMore ? "جار تحميل المزيد..." : "مشاهدة المزيد من الفيديوهات"}
+                </button>
+                <p>يتم تحميل 12 فيديو إضافياً في كل مرة للحفاظ على سرعة الصفحة.</p>
+              </div>
+            ) : videos.length > 0 ? (
+              <p className="all-videos-loaded">تم عرض جميع الفيديوهات المتاحة.</p>
             ) : null}
           </section>
         </section>

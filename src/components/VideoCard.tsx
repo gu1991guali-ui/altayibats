@@ -21,7 +21,7 @@ export function VideoCard({ video, canOpen, showStats }: VideoCardProps) {
       <Link to={href} className="thumbnail-link" aria-label={`مشاهدة ${video.title}`}>
         <div className={`thumbnail ${isShortVideo ? "short aspect-[9/16]" : "long aspect-video"}`}>
           {video.thumbnail_url ? (
-            <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" />
+            <img className="w-full h-full object-cover" src={video.thumbnail_url} alt="" loading="lazy" decoding="async" />
           ) : (
             <div className="thumbnail-empty">
               <Play size={34} aria-hidden="true" />

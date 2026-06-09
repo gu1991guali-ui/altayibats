@@ -27,8 +27,14 @@ export function Playlist({ playlist, canOpen = true }: PlaylistProps) {
     return null;
   }
 
+  const playlistSizeClass =
+    playlist.videos.length === 1 ? "playlist-section--single" : playlist.videos.length === 2 ? "playlist-section--double" : "";
+
+  const sliderSizeClass =
+    playlist.videos.length === 1 ? "playlist-slider--single" : playlist.videos.length === 2 ? "playlist-slider--double" : "";
+
   return (
-    <section className="playlist-section overflow-x-hidden" dir="rtl">
+    <section className={`playlist-section ${playlistSizeClass}`.trim()} dir="rtl">
       <div className="section-head compact playlist-section-head">
         <div>
           <h2>{playlist.title}</h2>
@@ -38,9 +44,9 @@ export function Playlist({ playlist, canOpen = true }: PlaylistProps) {
         <span className="playlist-count-badge">{formatVideoCount(playlist.videos.length)}</span>
       </div>
 
-      <div className="playlist-slider flex gap-4 overflow-x-auto flex-shrink-0">
+      <div className={`playlist-slider ${sliderSizeClass}`.trim()}>
         {playlist.videos.map((video) => (
-          <PlaylistCard key={`${playlist.id}-${video.id}`} video={video} canOpen={canOpen} />
+          <PlaylistCard key={`${playlist.id}-${video.id}`} video={video} canOpen={canOpen} showStats={false} />
         ))}
       </div>
     </section>
