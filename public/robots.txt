@@ -1,0 +1,6 @@
+# السماح لمحركات البحث بفهرسة موقع الطيبات
+User-agent: *
+Allow: /
+
+# خريطة الموقع
+Sitemap: https://chic-parfait-c03e7b.netlify.app/sitemap.xml
